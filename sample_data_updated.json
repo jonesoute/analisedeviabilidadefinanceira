@@ -1,0 +1,314 @@
+{
+  "servicos": [
+    {
+      "id": 1,
+      "codigo": "MASS01",
+      "nome": "Massagem Modeladora",
+      "duracao": 60,
+      "categoria": "Corporal",
+      "margemDesejada": 45
+    },
+    {
+      "id": 2,
+      "codigo": "DREN01",
+      "nome": "Drenagem Linfática",
+      "duracao": 90,
+      "categoria": "Corporal",
+      "margemDesejada": 50
+    },
+    {
+      "id": 3,
+      "codigo": "LIPO01",
+      "nome": "Lipocavitação",
+      "duracao": 45,
+      "categoria": "Estética Avançada",
+      "margemDesejada": 55
+    },
+    {
+      "id": 4,
+      "codigo": "RADIO01",
+      "nome": "Radiofrequência",
+      "duracao": 30,
+      "categoria": "Estética Avançada",
+      "margemDesejada": 60
+    },
+    {
+      "id": 5,
+      "codigo": "CRIO01",
+      "nome": "Criolipólise",
+      "duracao": 120,
+      "categoria": "Estética Avançada",
+      "margemDesejada": 65
+    }
+  ],
+  "materiais": [
+    {
+      "id": 1,
+      "codigo": "CREM01",
+      "nome": "Creme Redutor",
+      "custoUnitario": 2.5,
+      "rendimento": 20,
+      "unidade": "ml"
+    },
+    {
+      "id": 2,
+      "codigo": "OLEO01",
+      "nome": "Óleo de Massagem",
+      "custoUnitario": 1.8,
+      "rendimento": 30,
+      "unidade": "ml"
+    },
+    {
+      "id": 3,
+      "codigo": "LUVA01",
+      "nome": "Luvas Descartáveis",
+      "custoUnitario": 0.15,
+      "rendimento": 2,
+      "unidade": "par"
+    },
+    {
+      "id": 4,
+      "codigo": "GAZE01",
+      "nome": "Gaze Estéril",
+      "custoUnitario": 0.25,
+      "rendimento": 5,
+      "unidade": "unid"
+    },
+    {
+      "id": 5,
+      "codigo": "GEL01",
+      "nome": "Gel Condutor",
+      "custoUnitario": 3.2,
+      "rendimento": 15,
+      "unidade": "ml"
+    }
+  ],
+  "equipamentos": [
+    {
+      "id": 1,
+      "codigo": "MACA01",
+      "nome": "Maca Estética",
+      "custoAquisicao": 2500.0,
+      "vidaUtil": 60,
+      "custoHora": 0.69
+    },
+    {
+      "id": 2,
+      "codigo": "ULTRA01",
+      "nome": "Ultrassom Estético",
+      "custoAquisicao": 8500.0,
+      "vidaUtil": 36,
+      "custoHora": 3.94
+    },
+    {
+      "id": 3,
+      "codigo": "RADIO01",
+      "nome": "Radiofrequência",
+      "custoAquisicao": 12000.0,
+      "vidaUtil": 48,
+      "custoHora": 4.17
+    },
+    {
+      "id": 4,
+      "codigo": "CRIO01",
+      "nome": "Equipamento Criolipólise",
+      "custoAquisicao": 35000.0,
+      "vidaUtil": 60,
+      "custoHora": 9.72
+    }
+  ],
+  "funcionarios": [
+    {
+      "id": 1,
+      "nome": "Esteticista Pleno",
+      "cargo": "Profissional de Estética",
+      "salario": 2500.0,
+      "tipo": "CLT"
+    },
+    {
+      "id": 2,
+      "nome": "Esteticista Sênior",
+      "cargo": "Coordenador de Estética",
+      "salario": 3200.0,
+      "tipo": "CLT"
+    },
+    {
+      "id": 3,
+      "nome": "Recepcionista",
+      "cargo": "Atendimento",
+      "salario": 1400.0,
+      "tipo": "CLT"
+    }
+  ],
+  "socios": [
+    {
+      "id": 1,
+      "nome": "Sócio 1",
+      "proLabore": 4500.0,
+      "participacao": 60
+    },
+    {
+      "id": 2,
+      "nome": "Sócio 2",
+      "proLabore": 3000.0,
+      "participacao": 40
+    }
+  ],
+  "despesasFixas": [
+    {
+      "id": 1,
+      "descricao": "Aluguel",
+      "valor": 3500.0,
+      "categoria": "Infraestrutura"
+    },
+    {
+      "id": 2,
+      "descricao": "Energia Elétrica",
+      "valor": 450.0,
+      "categoria": "Utilities"
+    },
+    {
+      "id": 3,
+      "descricao": "Água",
+      "valor": 120.0,
+      "categoria": "Utilities"
+    },
+    {
+      "id": 4,
+      "descricao": "Internet/Telefone",
+      "valor": 200.0,
+      "categoria": "Comunicação"
+    },
+    {
+      "id": 5,
+      "descricao": "Marketing Digital",
+      "valor": 800.0,
+      "categoria": "Marketing"
+    },
+    {
+      "id": 6,
+      "descricao": "Contabilidade",
+      "valor": 600.0,
+      "categoria": "Serviços"
+    },
+    {
+      "id": 7,
+      "descricao": "Seguro",
+      "valor": 300.0,
+      "categoria": "Seguros"
+    },
+    {
+      "id": 8,
+      "descricao": "Limpeza",
+      "valor": 600.0,
+      "categoria": "Serviços"
+    }
+  ],
+  "despesasVariaveis": [
+    {
+      "id": 1,
+      "descricao": "Comissão Vendas",
+      "percentual": 5.0,
+      "baseCalculo": "receita"
+    },
+    {
+      "id": 2,
+      "descricao": "Cartão de Crédito/Taxa",
+      "percentual": 3.5,
+      "baseCalculo": "receita"
+    },
+    {
+      "id": 3,
+      "descricao": "Material Promocional",
+      "valor": 200.0,
+      "tipo": "valor_fixo"
+    },
+    {
+      "id": 4,
+      "descricao": "Manutenção Equipamentos",
+      "percentual": 2.0,
+      "baseCalculo": "equipamentos"
+    }
+  ],
+  "encargos": {
+    "clt": {
+      "inss": 8.0,
+      "fgts": 8.0,
+      "ferias": 11.11,
+      "decimoTerceiro": 8.33,
+      "inss_empresa": 20.0
+    },
+    "prolabore": {
+      "inss": 11.0,
+      "irrf": 0.0
+    },
+    "iss": 5.0
+  },
+  "parametrosAtendimento": {
+    "horasUteisPorDia": 10,
+    "diasUteisPorMes": 22,
+    "taxaOcupacao": 0.75
+  },
+  "consumoMateriais": [
+    {
+      "servicoId": 1,
+      "materialId": 1,
+      "quantidade": 25
+    },
+    {
+      "servicoId": 1,
+      "materialId": 2,
+      "quantidade": 40
+    },
+    {
+      "servicoId": 1,
+      "materialId": 3,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 2,
+      "materialId": 2,
+      "quantidade": 35
+    },
+    {
+      "servicoId": 2,
+      "materialId": 3,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 2,
+      "materialId": 4,
+      "quantidade": 3
+    },
+    {
+      "servicoId": 3,
+      "materialId": 5,
+      "quantidade": 20
+    },
+    {
+      "servicoId": 3,
+      "materialId": 3,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 4,
+      "materialId": 5,
+      "quantidade": 15
+    },
+    {
+      "servicoId": 4,
+      "materialId": 3,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 5,
+      "materialId": 5,
+      "quantidade": 25
+    },
+    {
+      "servicoId": 5,
+      "materialId": 3,
+      "quantidade": 1
+    }
+  ]
+}

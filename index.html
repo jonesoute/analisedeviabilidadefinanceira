@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Viabilidade - Estética Corporal</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>Análise de Viabilidade Financeira</h1>
+                <p>Sistema de Gestão para Estética Corporal</p>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="app-nav">
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-section="dashboard">
+                    <span class="tab-icon">📊</span>
+                    Dashboard
+                </button>
+                <button class="nav-tab" data-section="cadastros">
+                    <span class="tab-icon">📋</span>
+                    Cadastros
+                </button>
+                <button class="nav-tab" data-section="calculos">
+                    <span class="tab-icon">🧮</span>
+                    Cálculos
+                </button>
+                <button class="nav-tab" data-section="simulacoes">
+                    <span class="tab-icon">📈</span>
+                    Simulações
+                </button>
+                <button class="nav-tab" data-section="relatorios">
+                    <span class="tab-icon">📋</span>
+                    Relatórios
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Seção Dashboard -->
+            <section class="app-section active" id="dashboard">
+                <div class="section-header">
+                    <h2>Dashboard</h2>
+                    <p>Visão geral do negócio e controles principais</p>
+                </div>
+
+                <!-- Botões de Controle -->
+                <div class="dashboard-controls">
+                    <button class="btn btn--primary" onclick="salvarDados()">💾 Salvar Dados</button>
+                    <button class="btn btn--secondary" onclick="document.getElementById('backupFile').click()">📁 Carregar Backup</button>
+                    <input type="file" id="backupFile" accept=".json" style="display: none;" onchange="carregarBackup(event)">
+                    <button class="btn btn--outline" onclick="limparDados()">🗑️ Limpar Dados</button>
+                    <button class="btn btn--outline" onclick="imprimirRelatorio()">🖨️ Imprimir</button>
+                </div>
+
+                <!-- Indicadores Principais -->
+                <div class="indicadores-container">
+                    <div class="indicador-card">
+                        <h4>Receita Mensal</h4>
+                        <div class="indicador-valor" id="receitaMensal">R$ 0,00</div>
+                    </div>
+                    <div class="indicador-card">
+                        <h4>Ticket Médio</h4>
+                        <div class="indicador-valor" id="ticketMedioDash">R$ 0,00</div>
+                    </div>
+                    <div class="indicador-card">
+                        <h4>Margem Média</h4>
+                        <div class="indicador-valor" id="margemMediaDash">0%</div>
+                    </div>
+                    <div class="indicador-card">
+                        <h4>Resultado Mensal</h4>
+                        <div class="indicador-valor" id="resultadoMensalDash">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <!-- Gráficos Dashboard -->
+                <div class="dashboard-charts">
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Receita por Serviço</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="receitaPorServicoChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Composição de Custos</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="custosComposicaoChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Cadastros -->
+            <section class="app-section" id="cadastros">
+                <div class="section-header">
+                    <h2>Cadastros</h2>
+                    <p>Gerencie serviços, produtos, materiais e parâmetros</p>
+                </div>
+
+                <div class="cadastros-grid">
+                    <!-- 1. Serviços -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>1. Serviços</h3>
+                            <button class="btn btn--sm btn--primary" onclick="adicionarServico()">+ Adicionar</button>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="servicosTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nome</th>
+                                            <th>Duração (min)</th>
+                                            <th>Categoria</th>
+                                            <th>Margem (%)</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="servicosTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Produtos (para venda) -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>2. Produtos (para venda)</h3>
+                            <button class="btn btn--sm btn--primary" onclick="adicionarProduto()">+ Adicionar</button>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="produtosTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nome</th>
+                                            <th>Custo (R$)</th>
+                                            <th>Margem (%)</th>
+                                            <th>Categoria</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="produtosTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Materiais -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>3. Materiais</h3>
+                            <button class="btn btn--sm btn--primary" onclick="adicionarMaterial()">+ Adicionar</button>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="materiaisTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nome</th>
+                                            <th>Custo Unit. (R$)</th>
+                                            <th>Rendimento</th>
+                                            <th>Unidade</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="materiaisTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Equipamentos -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>4. Equipamentos</h3>
+                            <button class="btn btn--sm btn--primary" onclick="adicionarEquipamento()">+ Adicionar</button>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="equipamentosTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nome</th>
+                                            <th>Custo Aquisição (R$)</th>
+                                            <th>Vida Útil (meses)</th>
+                                            <th>Custo/Hora (R$)</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="equipamentosTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Funcionários CLT -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>5. Funcionários CLT</h3>
+                            <button class="btn btn--sm btn--primary" onclick="adicionarFuncionario()">+ Adicionar</button>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="funcionariosTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Cargo</th>
+                                            <th>Salário (R$)</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="funcionariosTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Sócios -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>6. Sócios</h3>
+                            <button class="btn btn--sm btn--primary" onclick="adicionarSocio()">+ Adicionar</button>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="sociosTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Pró-labore (R$)</th>
+                                            <th>Participação (%)</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sociosTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 7. Despesas Fixas -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>7. Despesas Fixas</h3>
+                            <button class="btn btn--sm btn--primary" onclick="adicionarDespesaFixa()">+ Adicionar</button>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="despesasFixasTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Descrição</th>
+                                            <th>Valor (R$)</th>
+                                            <th>Categoria</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="despesasFixasTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 8. Despesas Variáveis -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>8. Despesas Variáveis</h3>
+                            <button class="btn btn--sm btn--primary" onclick="adicionarDespesaVariavel()">+ Adicionar</button>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="despesasVariaveisTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Descrição</th>
+                                            <th>Valor (R$)</th>
+                                            <th>Observação</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="despesasVariaveisTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 9. Parâmetros de Atendimento -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>9. Parâmetros de Atendimento</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Horas Úteis/Dia</label>
+                                    <input type="number" class="form-control" id="horasUteisPorDia" min="1" max="24">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Dias Úteis/Mês</label>
+                                    <input type="number" class="form-control" id="diasUteisPorMes" min="1" max="31">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Taxa de Ocupação (%)</label>
+                                    <input type="number" class="form-control" id="taxaOcupacao" min="0" max="100" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 10. Consumo de Materiais por Serviço -->
+                    <div class="card full-width">
+                        <div class="card__header">
+                            <h3>10. Consumo de Materiais por Serviço</h3>
+                        </div>
+                        <div class="card__body">
+                            <div id="consumoMateriaisContainer">
+                                <!-- Será preenchido dinamicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 11. Produtos por Serviço (NOVO) -->
+                    <div class="card full-width">
+                        <div class="card__header">
+                            <h3>11. Produtos por Serviço</h3>
+                        </div>
+                        <div class="card__body">
+                            <div id="produtosPorServicoContainer">
+                                <!-- Será preenchido dinamicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Cálculos -->
+            <section class="app-section" id="calculos">
+                <div class="section-header">
+                    <h2>Cálculos</h2>
+                    <p>Custos calculados automaticamente com markup individual</p>
+                </div>
+
+                <div class="calculos-container">
+                    <!-- Custo por Serviços -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Custo por Serviços</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="calculosServicosTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Serviço</th>
+                                            <th>Custo Material (R$)</th>
+                                            <th>Custo Mão Obra (R$)</th>
+                                            <th>Custo Equipamento (R$)</th>
+                                            <th>Custo Fixo Rateado (R$)</th>
+                                            <th>Custo Total (R$)</th>
+                                            <th>Preço Sugerido (R$)</th>
+                                            <th>Margem (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="calculosServicosTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custo por Produtos (Venda) -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Custo por Produtos (Venda)</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table" id="calculosProdutosTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Produto</th>
+                                            <th>Custo Produto (R$)</th>
+                                            <th>Custo Rateado (R$)</th>
+                                            <th>Custo Total (R$)</th>
+                                            <th>Preço Venda (R$)</th>
+                                            <th>Margem (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="calculosProdutosTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Simulações -->
+            <section class="app-section" id="simulacoes">
+                <div class="section-header">
+                    <h2>Simulações</h2>
+                    <p>Cenários de ocupação e análise de sensibilidade</p>
+                </div>
+
+                <div class="simulacoes-grid">
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Cenários de Taxa de Ocupação</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Cenário</th>
+                                            <th>Taxa Ocupação</th>
+                                            <th>Sessões/Mês</th>
+                                            <th>Receita Mensal (R$)</th>
+                                            <th>Custo Variável (R$)</th>
+                                            <th>Resultado (R$)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cenariosTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Gráfico de Receita por Cenário</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="receitaChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção Relatórios -->
+            <section class="app-section" id="relatorios">
+                <div class="section-header">
+                    <h2>Relatórios</h2>
+                    <p>DRE, indicadores e análise de viabilidade</p>
+                </div>
+
+                <div class="relatorios-grid" id="relatorioImpressao">
+                    <!-- Indicadores Principais -->
+                    <div class="indicadores-container">
+                        <div class="indicador-card">
+                            <h4>Ticket Médio</h4>
+                            <div class="indicador-valor" id="ticketMedio">R$ 0,00</div>
+                        </div>
+                        <div class="indicador-card">
+                            <h4>Custo por Sessão</h4>
+                            <div class="indicador-valor" id="custoPorSessao">R$ 0,00</div>
+                        </div>
+                        <div class="indicador-card">
+                            <h4>Faturamento/Hora</h4>
+                            <div class="indicador-valor" id="faturamentoHora">R$ 0,00</div>
+                        </div>
+                        <div class="indicador-card">
+                            <h4>Margem Contribuição</h4>
+                            <div class="indicador-valor" id="margemContribuicao">0%</div>
+                        </div>
+                    </div>
+
+                    <!-- DRE Simplificado -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>DRE Simplificado (Mensal)</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="dre-container">
+                                <div class="dre-linha">
+                                    <span>Receita Bruta</span>
+                                    <span id="receitaBruta">R$ 0,00</span>
+                                </div>
+                                <div class="dre-linha">
+                                    <span>(-) Custos Variáveis</span>
+                                    <span id="custosVariaveis">R$ 0,00</span>
+                                </div>
+                                <div class="dre-linha margem">
+                                    <span><strong>= Margem de Contribuição</strong></span>
+                                    <span id="margemContribuicaoValor"><strong>R$ 0,00</strong></span>
+                                </div>
+                                <div class="dre-linha">
+                                    <span>(-) Custos Fixos</span>
+                                    <span id="custosFixosTotal">R$ 0,00</span>
+                                </div>
+                                <div class="dre-linha resultado">
+                                    <span><strong>= Resultado Líquido</strong></span>
+                                    <span id="resultadoLiquido"><strong>R$ 0,00</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Composição de Custos -->
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>Composição de Custos</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="chart-container" style="position: relative; height: 300px;">
+                                <canvas id="custosChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Análise de Viabilidade -->
+                    <div class="card viabilidade-card">
+                        <div class="card__header">
+                            <h3>Análise de Viabilidade</h3>
+                        </div>
+                        <div class="card__body">
+                            <div class="viabilidade-resultado" id="viabilidadeResultado">
+                                <div class="status-indicator" id="statusViabilidade">
+                                    <span class="status" id="statusBadge">Analisando...</span>
+                                </div>
+                                <div class="recomendacoes" id="recomendacoes">
+                                    <h4>Recomendações:</h4>
+                                    <ul id="listaRecomendacoes">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

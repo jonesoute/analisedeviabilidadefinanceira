@@ -1,0 +1,199 @@
+{
+  "servicos": [
+    {
+      "id": 1,
+      "codigo": "MASS01",
+      "nome": "Massagem Modeladora",
+      "duracao": 60,
+      "categoria": "Corporal"
+    },
+    {
+      "id": 2,
+      "codigo": "DREN01",
+      "nome": "Drenagem Linfática",
+      "duracao": 90,
+      "categoria": "Corporal"
+    },
+    {
+      "id": 3,
+      "codigo": "LIPO01",
+      "nome": "Lipocavitação",
+      "duracao": 45,
+      "categoria": "Estética Avançada"
+    },
+    {
+      "id": 4,
+      "codigo": "RADIO01",
+      "nome": "Radiofrequência",
+      "duracao": 30,
+      "categoria": "Estética Avançada"
+    },
+    {
+      "id": 5,
+      "codigo": "CRIO01",
+      "nome": "Criolipólise",
+      "duracao": 120,
+      "categoria": "Estética Avançada"
+    }
+  ],
+  "materiais": [
+    {
+      "id": 1,
+      "codigo": "CREM01",
+      "nome": "Creme Redutor",
+      "custoUnitario": 2.5,
+      "rendimento": 20,
+      "unidade": "ml"
+    },
+    {
+      "id": 2,
+      "codigo": "OLEO01",
+      "nome": "Óleo de Massagem",
+      "custoUnitario": 1.8,
+      "rendimento": 30,
+      "unidade": "ml"
+    },
+    {
+      "id": 3,
+      "codigo": "LUVA01",
+      "nome": "Luvas Descartáveis",
+      "custoUnitario": 0.15,
+      "rendimento": 2,
+      "unidade": "par"
+    },
+    {
+      "id": 4,
+      "codigo": "GAZE01",
+      "nome": "Gaze Estéril",
+      "custoUnitario": 0.25,
+      "rendimento": 5,
+      "unidade": "unid"
+    },
+    {
+      "id": 5,
+      "codigo": "GEL01",
+      "nome": "Gel Condutor",
+      "custoUnitario": 3.2,
+      "rendimento": 15,
+      "unidade": "ml"
+    }
+  ],
+  "equipamentos": [
+    {
+      "id": 1,
+      "codigo": "MACA01",
+      "nome": "Maca Estética",
+      "custoAquisicao": 2500.0,
+      "vidaUtil": 60,
+      "custoHora": 0.69
+    },
+    {
+      "id": 2,
+      "codigo": "ULTRA01",
+      "nome": "Ultrassom Estético",
+      "custoAquisicao": 8500.0,
+      "vidaUtil": 36,
+      "custoHora": 3.94
+    },
+    {
+      "id": 3,
+      "codigo": "RADIO01",
+      "nome": "Radiofrequência",
+      "custoAquisicao": 12000.0,
+      "vidaUtil": 48,
+      "custoHora": 4.17
+    },
+    {
+      "id": 4,
+      "codigo": "CRIO01",
+      "nome": "Equipamento Criolipólise",
+      "custoAquisicao": 35000.0,
+      "vidaUtil": 60,
+      "custoHora": 9.72
+    }
+  ],
+  "encargos": {
+    "inss": 0.08,
+    "fgts": 0.08,
+    "ferias": 0.1111,
+    "decimoTerceiro": 0.0833,
+    "iss": 0.05
+  },
+  "parametrosAtendimento": {
+    "horasUteisPorDia": 10,
+    "diasUteisPorMes": 22,
+    "taxaOcupacao": 0.75,
+    "quantidadeProfissionais": 2,
+    "salarioMedioProfissional": 2500.0
+  },
+  "custosFixos": {
+    "aluguel": 3500.0,
+    "energia": 450.0,
+    "agua": 120.0,
+    "marketing": 800.0,
+    "administrativo": 1200.0,
+    "limpeza": 600.0
+  },
+  "consumoMateriais": [
+    {
+      "servicoId": 1,
+      "materialId": 1,
+      "quantidade": 25
+    },
+    {
+      "servicoId": 1,
+      "materialId": 2,
+      "quantidade": 40
+    },
+    {
+      "servicoId": 1,
+      "materialId": 3,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 2,
+      "materialId": 2,
+      "quantidade": 35
+    },
+    {
+      "servicoId": 2,
+      "materialId": 3,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 2,
+      "materialId": 4,
+      "quantidade": 3
+    },
+    {
+      "servicoId": 3,
+      "materialId": 5,
+      "quantidade": 20
+    },
+    {
+      "servicoId": 3,
+      "materialId": 3,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 4,
+      "materialId": 5,
+      "quantidade": 15
+    },
+    {
+      "servicoId": 4,
+      "materialId": 3,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 5,
+      "materialId": 5,
+      "quantidade": 25
+    },
+    {
+      "servicoId": 5,
+      "materialId": 3,
+      "quantidade": 1
+    }
+  ]
+}
