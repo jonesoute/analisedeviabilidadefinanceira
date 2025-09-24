@@ -1,211 +1,54 @@
 // Sistema de Análise de Viabilidade Financeira - Estética Corporal
-// CORREÇÃO CRÍTICA: Sistema de navegação completamente reescrito
+// Versão completa com 5 abas e todas as melhorias solicitadas - CORRIGIDA
 
 class FinancialAnalysisApp {
     constructor() {
         this.state = {
             servicos: [],
-            produtos: [],
+            produtos: [], // Produtos para VENDA
             materiais: [],
             equipamentos: [],
             funcionarios: [],
             socios: [],
             despesasFixas: [],
             despesasVariaveis: [],
-            consumoMateriais: [],
+            consumoMateriais: [], // Materiais usados por serviço
+            produtosPorServico: [], // Produtos consumidos por serviço
             parametrosAtendimento: {
                 horasUteisPorDia: 10,
                 diasUteisPorMes: 22,
-                taxaOcupacao: 0.75
+                taxaOcupacao: 75
             },
-            encargos: {
-                clt: {
-                    inss: 8.0,
-                    fgts: 8.0,
-                    ferias: 11.11,
-                    decimoTerceiro: 8.33,
-                    inss_empresa: 20.0
-                },
-                prolabore: {
-                    inss: 11.0
-                },
-                iss: 5.0
-            },
-            projecaoCrescimento: {
-                crescimentoReceita: 5.0,
-                crescimentoCustos: 2.0,
-                meta12Meses: 150000.00,
-                investimentoMarketing: 1500.00,
-                mixProdutosProjecao: 30
+            parametrosProjecao: {
+                mesesProjecao: 24,
+                crescimentoReceita: 2.5,
+                crescimentoCustos: 1.5,
+                investimentoMarketing: 1000
             }
         };
         
         this.charts = {};
         this.calculosServicos = [];
         this.calculosProdutos = [];
+        this.projecaoData = [];
         this.currentSection = 'dashboard';
-        this.accordionStates = {};
+        this.paginaProjecaoAtual = 0;
+        this.mesesPorPagina = 12;
     }
 
     init() {
-        console.log('=== INICIANDO APLICAÇÃO ===');
-        this.loadData();
+        console.log('Iniciando aplicação...');
+        this.loadInitialData();
+        this.loadFromStorage();
         this.setupNavigation();
-        this.setupEventListeners();
         this.renderAll();
+        this.setupEventListeners();
         this.calculate();
-        console.log('=== APLICAÇÃO INICIADA ===');
-    }
-
-    // === NAVEGAÇÃO - COMPLETAMENTE REESCRITA ===
-    setupNavigation() {
-        console.log('=== CONFIGURANDO NAVEGAÇÃO ===');
-        
-        // Aguardar DOM estar completamente carregado
-        setTimeout(() => {
-            const navTabs = document.querySelectorAll('.nav-tab');
-            console.log('Número de tabs encontradas:', navTabs.length);
-            
-            if (navTabs.length === 0) {
-                console.error('ERRO: Nenhuma tab encontrada!');
-                return;
-            }
-            
-            // Remover todos os event listeners existentes
-            navTabs.forEach(tab => {
-                const newTab = tab.cloneNode(true);
-                tab.parentNode.replaceChild(newTab, tab);
-            });
-            
-            // Adicionar novos event listeners
-            const newNavTabs = document.querySelectorAll('.nav-tab');
-            newNavTabs.forEach((tab, index) => {
-                const sectionName = tab.getAttribute('data-section');
-                console.log(`Configurando tab ${index}: ${sectionName}`);
-                
-                tab.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log(`=== CLIQUE NA TAB: ${sectionName} ===`);
-                    this.navigateToSection(sectionName);
-                });
-            });
-            
-            console.log('Event listeners configurados com sucesso');
-        }, 100);
-    }
-
-    navigateToSection(sectionName) {
-        console.log(`\n=== NAVEGANDO PARA: ${sectionName} ===`);
-        
-        // 1. Encontrar todas as tabs e sections
-        const allTabs = document.querySelectorAll('.nav-tab');
-        const allSections = document.querySelectorAll('.app-section');
-        
-        console.log(`Tabs encontradas: ${allTabs.length}`);
-        console.log(`Seções encontradas: ${allSections.length}`);
-        
-        // 2. Remover classe active de todas as tabs
-        allTabs.forEach((tab, index) => {
-            const tabSection = tab.getAttribute('data-section');
-            tab.classList.remove('active');
-            console.log(`Tab ${index} (${tabSection}): active removido`);
-        });
-        
-        // 3. Remover classe active de todas as sections
-        allSections.forEach((section, index) => {
-            section.classList.remove('active');
-            console.log(`Seção ${index} (${section.id}): active removido`);
-        });
-        
-        // 4. Adicionar classe active à tab correta
-        const targetTab = document.querySelector(`[data-section="${sectionName}"]`);
-        if (targetTab) {
-            targetTab.classList.add('active');
-            console.log(`✓ Tab ativada: ${sectionName}`);
-        } else {
-            console.error(`✗ Tab não encontrada: ${sectionName}`);
-        }
-        
-        // 5. Adicionar classe active à section correta
-        const targetSection = document.getElementById(sectionName);
-        if (targetSection) {
-            targetSection.classList.add('active');
-            console.log(`✓ Seção ativada: ${sectionName}`);
-            
-            // Forçar re-render se necessário
-            targetSection.style.display = 'block';
-            
-            this.currentSection = sectionName;
-            
-            // 6. Renderizar gráficos específicos da seção
-            setTimeout(() => {
-                this.renderSectionSpecificContent(sectionName);
-            }, 200);
-            
-        } else {
-            console.error(`✗ Seção não encontrada: ${sectionName}`);
-        }
-        
-        console.log(`=== FIM NAVEGAÇÃO PARA: ${sectionName} ===\n`);
-    }
-
-    renderSectionSpecificContent(sectionName) {
-        console.log(`Renderizando conteúdo específico para: ${sectionName}`);
-        
-        switch(sectionName) {
-            case 'dashboard':
-                this.renderDashboardCharts();
-                break;
-            case 'relatorios':
-                this.renderReportCharts();
-                break;
-            case 'projecao':
-                this.renderProjecaoChart();
-                break;
-            default:
-                console.log(`Nenhum conteúdo específico para: ${sectionName}`);
-        }
-    }
-
-    // === PERSISTÊNCIA DE DADOS ===
-    saveData() {
-        try {
-            const dataToSave = {
-                ...this.state,
-                timestamp: new Date().toISOString(),
-                version: '2.0'
-            };
-            localStorage.setItem('esteticaCorporalData', JSON.stringify(dataToSave));
-            console.log('Dados salvos automaticamente');
-            return true;
-        } catch (error) {
-            console.error('Erro ao salvar dados:', error);
-            this.showNotification('Erro ao salvar dados. Verifique o espaço de armazenamento disponível.', 'error');
-            return false;
-        }
-    }
-
-    loadData() {
-        try {
-            const savedData = localStorage.getItem('esteticaCorporalData');
-            if (savedData) {
-                const parsedData = JSON.parse(savedData);
-                this.state = { ...this.state, ...parsedData };
-                console.log('Dados carregados com sucesso');
-                this.showNotification('Dados carregados com sucesso!', 'success');
-            } else {
-                this.loadInitialData();
-            }
-        } catch (error) {
-            console.error('Erro ao carregar dados:', error);
-            this.loadInitialData();
-            this.showNotification('Dados iniciais carregados.', 'info');
-        }
+        console.log('Aplicação iniciada com sucesso');
     }
 
     loadInitialData() {
-        // Dados iniciais conforme fornecidos
+        // Dados iniciais dos exemplos
         this.state.servicos = [
             {id: 1, codigo: "MASS01", nome: "Massagem Modeladora", duracao: 60, categoria: "Corporal", margemDesejada: 45},
             {id: 2, codigo: "DREN01", nome: "Drenagem Linfática", duracao: 90, categoria: "Corporal", margemDesejada: 50},
@@ -215,10 +58,10 @@ class FinancialAnalysisApp {
         ];
 
         this.state.produtos = [
-            {id: 1, codigo: "PROD01", nome: "Creme Anti-Celulite", unidade: "unid", custoProduto: 45.00, margemDesejada: 150, categoria: "Cosméticos"},
-            {id: 2, codigo: "PROD02", nome: "Óleo Corporal Premium", unidade: "unid", custoProduto: 28.00, margemDesejada: 180, categoria: "Cosméticos"},
-            {id: 3, codigo: "PROD03", nome: "Suplemento Drenante", unidade: "unid", custoProduto: 35.00, margemDesejada: 120, categoria: "Suplementos"},
-            {id: 4, codigo: "PROD04", nome: "Kit Cuidados Pós-Tratamento", unidade: "kit", custoProduto: 85.00, margemDesejada: 100, categoria: "Kits"}
+            {id: 1, codigo: "PROD01", nome: "Creme Anti-Celulite", custoProduto: 45.00, margemDesejada: 150, categoria: "Cosméticos"},
+            {id: 2, codigo: "PROD02", nome: "Óleo Corporal Premium", custoProduto: 28.00, margemDesejada: 180, categoria: "Cosméticos"},
+            {id: 3, codigo: "PROD03", nome: "Suplemento Drenante", custoProduto: 35.00, margemDesejada: 120, categoria: "Suplementos"},
+            {id: 4, codigo: "PROD04", nome: "Kit Cuidados Pós-Tratamento", custoProduto: 85.00, margemDesejada: 100, categoria: "Kits"}
         ];
 
         this.state.materiais = [
@@ -237,9 +80,9 @@ class FinancialAnalysisApp {
         ];
 
         this.state.funcionarios = [
-            {id: 1, nome: "Esteticista Pleno", cargo: "Profissional de Estética", salario: 2500.00, tipo: "CLT"},
-            {id: 2, nome: "Esteticista Sênior", cargo: "Coordenador de Estética", salario: 3200.00, tipo: "CLT"},
-            {id: 3, nome: "Recepcionista", cargo: "Atendimento", salario: 1400.00, tipo: "CLT"}
+            {id: 1, nome: "Esteticista Pleno", cargo: "Profissional de Estética", salario: 2500.00},
+            {id: 2, nome: "Esteticista Sênior", cargo: "Coordenador de Estética", salario: 3200.00},
+            {id: 3, nome: "Recepcionista", cargo: "Atendimento", salario: 1400.00}
         ];
 
         this.state.socios = [
@@ -258,6 +101,13 @@ class FinancialAnalysisApp {
             {id: 8, descricao: "Limpeza", valor: 600.00, categoria: "Serviços"}
         ];
 
+        this.state.despesasVariaveis = [
+            {id: 1, descricao: "Comissão Vendas (5%)", valor: 450.00, observacao: "Estimativa baseada em R$ 9.000 receita mensal"},
+            {id: 2, descricao: "Taxa Cartão Crédito (3.5%)", valor: 315.00, observacao: "Estimativa baseada em R$ 9.000 receita mensal"},
+            {id: 3, descricao: "Material Promocional", valor: 200.00, observacao: "Valor fixo mensal"},
+            {id: 4, descricao: "Manutenção Equipamentos", valor: 180.00, observacao: "2% sobre valor equipamentos"}
+        ];
+
         this.state.consumoMateriais = [
             {servicoId: 1, materialId: 1, quantidade: 25},
             {servicoId: 1, materialId: 2, quantidade: 40},
@@ -273,250 +123,149 @@ class FinancialAnalysisApp {
             {servicoId: 5, materialId: 3, quantidade: 1}
         ];
 
-        this.saveData(); // Salva dados iniciais
+        this.state.produtosPorServico = [
+            {servicoId: 1, produtoId: 1, quantidade: 0.1},
+            {servicoId: 1, produtoId: 2, quantidade: 0.05},
+            {servicoId: 2, produtoId: 2, quantidade: 0.08},
+            {servicoId: 2, produtoId: 3, quantidade: 0.02},
+            {servicoId: 3, produtoId: 1, quantidade: 0.15},
+            {servicoId: 4, produtoId: 1, quantidade: 0.12},
+            {servicoId: 5, produtoId: 4, quantidade: 0.25}
+        ];
     }
 
-    exportData() {
+    // Persistência de dados
+    saveToStorage() {
         try {
-            const dataToExport = {
+            const dataToSave = {
                 ...this.state,
-                timestamp: new Date().toISOString(),
-                version: '2.0'
+                timestamp: new Date().toISOString()
             };
-            const dataStr = JSON.stringify(dataToExport, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `backup_estetica_corporal_${new Date().toISOString().split('T')[0]}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            this.showNotification('Backup exportado com sucesso!', 'success');
+            localStorage.setItem('financial_analysis_data', JSON.stringify(dataToSave));
+            console.log('Dados salvos no localStorage');
         } catch (error) {
-            console.error('Erro ao exportar dados:', error);
-            this.showNotification('Erro ao exportar dados.', 'error');
+            console.error('Erro ao salvar dados:', error);
         }
     }
 
-    importData() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
-                        if (importedData.version && importedData.servicos) {
-                            this.state = { ...this.state, ...importedData };
-                            this.saveData();
-                            this.renderAll();
-                            this.calculate();
-                            this.showNotification('Dados importados com sucesso!', 'success');
-                        } else {
-                            this.showNotification('Arquivo de backup inválido.', 'error');
-                        }
-                    } catch (error) {
-                        console.error('Erro ao importar dados:', error);
-                        this.showNotification('Erro ao importar dados. Verifique o arquivo.', 'error');
+    loadFromStorage() {
+        try {
+            const savedData = localStorage.getItem('financial_analysis_data');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                Object.keys(this.state).forEach(key => {
+                    if (parsedData[key]) {
+                        this.state[key] = parsedData[key];
                     }
-                };
-                reader.readAsText(file);
+                });
+                console.log('Dados carregados do localStorage');
             }
-        };
-        input.click();
-    }
-
-    // CORREÇÃO PRINCIPAL: Função clearData corrigida para zerar TUDO
-    clearData() {
-        if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
-            // Resetar TODOS os arrays para vazio, mantendo apenas parâmetros padrão
-            this.state = {
-                servicos: [],
-                produtos: [],
-                materiais: [],
-                equipamentos: [],
-                funcionarios: [],
-                socios: [],
-                despesasFixas: [],
-                despesasVariaveis: [],
-                consumoMateriais: [],
-                parametrosAtendimento: {
-                    horasUteisPorDia: 10,
-                    diasUteisPorMes: 22,
-                    taxaOcupacao: 0.75
-                },
-                encargos: {
-                    clt: {
-                        inss: 8.0,
-                        fgts: 8.0,
-                        ferias: 11.11,
-                        decimoTerceiro: 8.33,
-                        inss_empresa: 20.0
-                    },
-                    prolabore: {
-                        inss: 11.0
-                    },
-                    iss: 5.0
-                },
-                projecaoCrescimento: {
-                    crescimentoReceita: 5.0,
-                    crescimentoCustos: 2.0,
-                    meta12Meses: 150000.00,
-                    investimentoMarketing: 1500.00,
-                    mixProdutosProjecao: 30
-                }
-            };
-
-            // Limpar arrays de cálculos
-            this.calculosServicos = [];
-            this.calculosProdutos = [];
-
-            // Limpar localStorage
-            localStorage.removeItem('esteticaCorporalData');
-            
-            // Salvar estado limpo e re-renderizar tudo
-            this.saveData();
-            this.renderAll();
-            this.calculate();
-            
-            this.showNotification('Todos os dados foram limpos!', 'success');
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
         }
     }
 
-    showNotification(message, type = 'info') {
-        console.log(`NOTIFICAÇÃO [${type}]: ${message}`);
+    setupNavigation() {
+        console.log('Configurando navegação...');
+        const navTabs = document.querySelectorAll('.nav-tab');
         
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification notification--${type}`;
-        notification.innerHTML = `
-            <span>${message}</span>
-            <button onclick="this.parentElement.remove()">×</button>
-        `;
+        navTabs.forEach((tab) => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const targetSection = tab.dataset.section;
+                console.log('Clicou na tab:', targetSection);
+                if (targetSection) {
+                    this.switchToSection(targetSection);
+                }
+            });
+        });
         
-        // Add to DOM
-        document.body.appendChild(notification);
-        
-        // Auto remove after 3 seconds
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
-        }, 3000);
+        console.log('Navegação configurada para', navTabs.length, 'tabs');
     }
 
-    // === EVENT LISTENERS ===
+    switchToSection(sectionName) {
+        console.log('Mudando para seção:', sectionName);
+        
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const sections = document.querySelectorAll('.app-section');
+        
+        navTabs.forEach(tab => tab.classList.remove('active'));
+        sections.forEach(section => section.classList.remove('active'));
+        
+        const targetTab = document.querySelector(`[data-section="${sectionName}"]`);
+        const targetSection = document.getElementById(sectionName);
+        
+        if (targetTab) {
+            targetTab.classList.add('active');
+            console.log('Tab ativada:', sectionName);
+        }
+        
+        if (targetSection) {
+            targetSection.classList.add('active');
+            console.log('Seção ativada:', sectionName);
+            
+            this.currentSection = sectionName;
+            
+            setTimeout(() => {
+                if (sectionName === 'dashboard') {
+                    this.renderDashboardCharts();
+                } else if (sectionName === 'relatorios') {
+                    this.renderReportCharts();
+                } else if (sectionName === 'projecao') {
+                    this.renderProjecaoChart();
+                }
+            }, 200);
+        } else {
+            console.error('Seção não encontrada:', sectionName);
+        }
+    }
+
     setupEventListeners() {
         // Parâmetros de atendimento
-        ['horasUteisPorDia', 'diasUteisPorMes'].forEach(field => {
-            const element = document.getElementById(field);
+        const paramFields = ['horasUteisPorDia', 'diasUteisPorMes', 'taxaOcupacao'];
+        paramFields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
             if (element) {
                 element.addEventListener('input', (e) => {
-                    this.state.parametrosAtendimento[field] = parseFloat(e.target.value) || 0;
-                    this.saveData();
+                    let value = parseFloat(e.target.value) || 0;
+                    this.state.parametrosAtendimento[fieldId] = value;
                     this.calculate();
+                    this.saveToStorage();
                 });
             }
         });
 
-        const taxaOcupacaoElement = document.getElementById('taxaOcupacao');
-        if (taxaOcupacaoElement) {
-            taxaOcupacaoElement.addEventListener('input', (e) => {
-                this.state.parametrosAtendimento.taxaOcupacao = parseFloat(e.target.value) / 100 || 0;
-                this.saveData();
-                this.calculate();
-            });
-        }
-
-        // Simulação rápida no dashboard
-        const taxaSimulacao = document.getElementById('taxaSimulacao');
-        const taxaSimulacaoValue = document.getElementById('taxaSimulacaoValue');
-        if (taxaSimulacao && taxaSimulacaoValue) {
-            taxaSimulacao.addEventListener('input', (e) => {
-                const value = e.target.value;
-                taxaSimulacaoValue.textContent = value + '%';
-                this.updateSimulacaoRapida(value / 100);
-            });
-        }
-
-        // Projeção
-        ['crescimentoReceita', 'crescimentoCustos', 'meta12Meses', 'mixProdutosProjecao'].forEach(field => {
-            const element = document.getElementById(field);
+        // Parâmetros de projeção
+        const projecaoFields = ['mesesProjecao', 'crescimentoReceita', 'crescimentoCustos', 'investimentoMarketing'];
+        projecaoFields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
             if (element) {
                 element.addEventListener('input', (e) => {
-                    this.state.projecaoCrescimento[field] = parseFloat(e.target.value) || 0;
-                    this.saveData();
-                    if (this.currentSection === 'projecao') {
-                        setTimeout(() => this.renderProjecaoChart(), 100);
-                    }
+                    let value = parseFloat(e.target.value) || 0;
+                    this.state.parametrosProjecao[fieldId] = value;
+                    this.saveToStorage();
                 });
             }
         });
     }
 
-    // === ACCORDION ===
-    toggleAccordion(sectionName) {
-        const header = document.querySelector(`button[onclick="toggleAccordion('${sectionName}')"]`);
-        const content = document.getElementById(`accordion${sectionName.charAt(0).toUpperCase() + sectionName.slice(1)}`);
-        
-        if (header && content) {
-            const isActive = content.classList.contains('active');
-            
-            if (isActive) {
-                content.classList.remove('active');
-                header.classList.remove('active');
-                this.accordionStates[sectionName] = false;
-            } else {
-                content.classList.add('active');
-                header.classList.add('active');
-                this.accordionStates[sectionName] = true;
-            }
-        }
-    }
-
-    // === RENDER METHODS ===
     renderAll() {
-        this.renderCounts();
         this.renderServicos();
         this.renderProdutos();
         this.renderMateriais();
         this.renderEquipamentos();
         this.renderFuncionarios();
+        this.renderSocios();
         this.renderDespesasFixas();
+        this.renderDespesasVariaveis();
         this.renderParametros();
         this.renderConsumoMateriais();
-        this.renderDashboard();
+        this.renderProdutosPorServico();
+        this.renderParametrosProjecao();
     }
 
-    renderCounts() {
-        this.updateElementText('countServicos', this.state.servicos.length);
-        this.updateElementText('countProdutos', this.state.produtos.length);
-        this.updateElementText('countMateriais', this.state.materiais.length);
-        this.updateElementText('countEquipamentos', this.state.equipamentos.length);
-        this.updateElementText('countFuncionarios', this.state.funcionarios.length);
-
-        // Totais - CORREÇÃO: verificar se há dados
-        const custoTotalProdutos = this.state.produtos.length > 0 ? 
-            this.state.produtos.reduce((sum, p) => sum + p.custoProduto, 0) : 0;
-        const totalDespesasFixas = this.state.despesasFixas.length > 0 ?
-            this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0) : 0;
-
-        this.updateElementText('custoTotalProdutos', this.formatCurrency(custoTotalProdutos));
-        this.updateElementText('totalDespesasFixas', this.formatCurrency(totalDespesasFixas));
-
-        // Receita potencial produtos - CORREÇÃO: verificar se há dados
-        const receitaPotencial = this.state.produtos.length > 0 ? this.state.produtos.reduce((sum, p) => {
-            const precoFinal = p.custoProduto * (1 + p.margemDesejada / 100);
-            return sum + precoFinal;
-        }, 0) : 0;
-        this.updateElementText('receitaPotencialProdutos', this.formatCurrency(receitaPotencial));
-    }
-
+    // CRUD Serviços
     renderServicos() {
         const tbody = document.getElementById('servicosTableBody');
         if (!tbody) return;
@@ -527,20 +276,59 @@ class FinancialAnalysisApp {
                 <td><input type="text" value="${servico.nome}" onchange="window.app.updateServico(${servico.id}, 'nome', this.value)"></td>
                 <td><input type="number" value="${servico.duracao}" onchange="window.app.updateServico(${servico.id}, 'duracao', parseFloat(this.value))"></td>
                 <td><input type="text" value="${servico.categoria}" onchange="window.app.updateServico(${servico.id}, 'categoria', this.value)"></td>
-                <td><input type="number" value="${servico.margemDesejada}" onchange="window.app.updateServico(${servico.id}, 'margemDesejada', parseFloat(this.value))"></td>
+                <td><input type="number" value="${servico.margemDesejada}" step="0.1" onchange="window.app.updateServico(${servico.id}, 'margemDesejada', parseFloat(this.value))"></td>
                 <td><button class="btn-action btn-remove" onclick="window.app.removeServico(${servico.id})">Remover</button></td>
             </tr>
         `).join('');
+    }
 
-        // Atualizar valor total estimado - CORREÇÃO: verificar se há dados
-        if (this.calculosServicos.length > 0) {
-            const valorTotal = this.calculosServicos.reduce((sum, calc) => sum + calc.precoFinal, 0);
-            this.updateElementText('valorTotalServicos', this.formatCurrency(valorTotal));
-        } else {
-            this.updateElementText('valorTotalServicos', this.formatCurrency(0));
+    adicionarServico() {
+        const newId = Math.max(...this.state.servicos.map(s => s.id), 0) + 1;
+        const novoServico = {
+            id: newId,
+            codigo: `SRV${newId.toString().padStart(2, '0')}`,
+            nome: 'Novo Serviço',
+            duracao: 60,
+            categoria: 'Corporal',
+            margemDesejada: 50
+        };
+        
+        this.state.servicos.push(novoServico);
+        this.state.produtos.forEach(produto => {
+            this.state.produtosPorServico.push({
+                servicoId: newId,
+                produtoId: produto.id,
+                quantidade: 0
+            });
+        });
+        
+        this.renderServicos();
+        this.renderProdutosPorServico();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    updateServico(id, field, value) {
+        const servico = this.state.servicos.find(s => s.id === id);
+        if (servico) {
+            servico[field] = value;
+            this.calculate();
+            this.saveToStorage();
         }
     }
 
+    removeServico(id) {
+        this.state.servicos = this.state.servicos.filter(s => s.id !== id);
+        this.state.consumoMateriais = this.state.consumoMateriais.filter(c => c.servicoId !== id);
+        this.state.produtosPorServico = this.state.produtosPorServico.filter(p => p.servicoId !== id);
+        this.renderServicos();
+        this.renderConsumoMateriais();
+        this.renderProdutosPorServico();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    // CRUD Produtos
     renderProdutos() {
         const tbody = document.getElementById('produtosTableBody');
         if (!tbody) return;
@@ -549,15 +337,59 @@ class FinancialAnalysisApp {
             <tr data-id="${produto.id}">
                 <td><input type="text" value="${produto.codigo}" onchange="window.app.updateProduto(${produto.id}, 'codigo', this.value)"></td>
                 <td><input type="text" value="${produto.nome}" onchange="window.app.updateProduto(${produto.id}, 'nome', this.value)"></td>
-                <td><input type="text" value="${produto.unidade}" onchange="window.app.updateProduto(${produto.id}, 'unidade', this.value)"></td>
                 <td><input type="number" step="0.01" value="${produto.custoProduto}" onchange="window.app.updateProduto(${produto.id}, 'custoProduto', parseFloat(this.value))"></td>
-                <td><input type="number" value="${produto.margemDesejada}" onchange="window.app.updateProduto(${produto.id}, 'margemDesejada', parseFloat(this.value))"></td>
+                <td><input type="number" step="0.1" value="${produto.margemDesejada}" onchange="window.app.updateProduto(${produto.id}, 'margemDesejada', parseFloat(this.value))"></td>
                 <td><input type="text" value="${produto.categoria}" onchange="window.app.updateProduto(${produto.id}, 'categoria', this.value)"></td>
                 <td><button class="btn-action btn-remove" onclick="window.app.removeProduto(${produto.id})">Remover</button></td>
             </tr>
         `).join('');
     }
 
+    adicionarProduto() {
+        const newId = Math.max(...this.state.produtos.map(p => p.id), 0) + 1;
+        const novoProduto = {
+            id: newId,
+            codigo: `PROD${newId.toString().padStart(2, '0')}`,
+            nome: 'Novo Produto',
+            custoProduto: 0,
+            margemDesejada: 100,
+            categoria: 'Cosméticos'
+        };
+        
+        this.state.produtos.push(novoProduto);
+        this.state.servicos.forEach(servico => {
+            this.state.produtosPorServico.push({
+                servicoId: servico.id,
+                produtoId: newId,
+                quantidade: 0
+            });
+        });
+        
+        this.renderProdutos();
+        this.renderProdutosPorServico();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    updateProduto(id, field, value) {
+        const produto = this.state.produtos.find(p => p.id === id);
+        if (produto) {
+            produto[field] = value;
+            this.calculate();
+            this.saveToStorage();
+        }
+    }
+
+    removeProduto(id) {
+        this.state.produtos = this.state.produtos.filter(p => p.id !== id);
+        this.state.produtosPorServico = this.state.produtosPorServico.filter(pp => pp.produtoId !== id);
+        this.renderProdutos();
+        this.renderProdutosPorServico();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    // CRUD Materiais
     renderMateriais() {
         const tbody = document.getElementById('materiaisTableBody');
         if (!tbody) return;
@@ -574,6 +406,41 @@ class FinancialAnalysisApp {
         `).join('');
     }
 
+    adicionarMaterial() {
+        const newId = Math.max(...this.state.materiais.map(m => m.id), 0) + 1;
+        this.state.materiais.push({
+            id: newId,
+            codigo: `MAT${newId.toString().padStart(2, '0')}`,
+            nome: 'Novo Material',
+            custoUnitario: 0,
+            rendimento: 1,
+            unidade: 'unid'
+        });
+        this.renderMateriais();
+        this.renderConsumoMateriais();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    updateMaterial(id, field, value) {
+        const material = this.state.materiais.find(m => m.id === id);
+        if (material) {
+            material[field] = value;
+            this.calculate();
+            this.saveToStorage();
+        }
+    }
+
+    removeMaterial(id) {
+        this.state.materiais = this.state.materiais.filter(m => m.id !== id);
+        this.state.consumoMateriais = this.state.consumoMateriais.filter(c => c.materialId !== id);
+        this.renderMateriais();
+        this.renderConsumoMateriais();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    // CRUD Equipamentos
     renderEquipamentos() {
         const tbody = document.getElementById('equipamentosTableBody');
         if (!tbody) return;
@@ -590,6 +457,47 @@ class FinancialAnalysisApp {
         `).join('');
     }
 
+    adicionarEquipamento() {
+        const newId = Math.max(...this.state.equipamentos.map(e => e.id), 0) + 1;
+        this.state.equipamentos.push({
+            id: newId,
+            codigo: `EQP${newId.toString().padStart(2, '0')}`,
+            nome: 'Novo Equipamento',
+            custoAquisicao: 0,
+            vidaUtil: 36,
+            custoHora: 0
+        });
+        this.renderEquipamentos();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    updateEquipamento(id, field, value) {
+        const equipamento = this.state.equipamentos.find(e => e.id === id);
+        if (equipamento) {
+            equipamento[field] = value;
+            if (field === 'custoAquisicao' || field === 'vidaUtil') {
+                equipamento.custoHora = this.calcularCustoHora(equipamento);
+            }
+            this.renderEquipamentos();
+            this.calculate();
+            this.saveToStorage();
+        }
+    }
+
+    removeEquipamento(id) {
+        this.state.equipamentos = this.state.equipamentos.filter(e => e.id !== id);
+        this.renderEquipamentos();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    calcularCustoHora(equipamento) {
+        const horasTotais = equipamento.vidaUtil * this.state.parametrosAtendimento.horasUteisPorDia * this.state.parametrosAtendimento.diasUteisPorMes;
+        return horasTotais > 0 ? equipamento.custoAquisicao / horasTotais : 0;
+    }
+
+    // CRUD Funcionários
     renderFuncionarios() {
         const tbody = document.getElementById('funcionariosTableBody');
         if (!tbody) return;
@@ -599,17 +507,85 @@ class FinancialAnalysisApp {
                 <td><input type="text" value="${funcionario.nome}" onchange="window.app.updateFuncionario(${funcionario.id}, 'nome', this.value)"></td>
                 <td><input type="text" value="${funcionario.cargo}" onchange="window.app.updateFuncionario(${funcionario.id}, 'cargo', this.value)"></td>
                 <td><input type="number" step="0.01" value="${funcionario.salario}" onchange="window.app.updateFuncionario(${funcionario.id}, 'salario', parseFloat(this.value))"></td>
-                <td>
-                    <select onchange="window.app.updateFuncionario(${funcionario.id}, 'tipo', this.value)">
-                        <option value="CLT" ${funcionario.tipo === 'CLT' ? 'selected' : ''}>CLT</option>
-                        <option value="PJ" ${funcionario.tipo === 'PJ' ? 'selected' : ''}>PJ</option>
-                    </select>
-                </td>
                 <td><button class="btn-action btn-remove" onclick="window.app.removeFuncionario(${funcionario.id})">Remover</button></td>
             </tr>
         `).join('');
     }
 
+    adicionarFuncionario() {
+        const newId = Math.max(...this.state.funcionarios.map(f => f.id), 0) + 1;
+        this.state.funcionarios.push({
+            id: newId,
+            nome: 'Novo Funcionário',
+            cargo: 'Cargo',
+            salario: 1500.00
+        });
+        this.renderFuncionarios();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    updateFuncionario(id, field, value) {
+        const funcionario = this.state.funcionarios.find(f => f.id === id);
+        if (funcionario) {
+            funcionario[field] = value;
+            this.calculate();
+            this.saveToStorage();
+        }
+    }
+
+    removeFuncionario(id) {
+        this.state.funcionarios = this.state.funcionarios.filter(f => f.id !== id);
+        this.renderFuncionarios();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    // CRUD Sócios
+    renderSocios() {
+        const tbody = document.getElementById('sociosTableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = this.state.socios.map(socio => `
+            <tr data-id="${socio.id}">
+                <td><input type="text" value="${socio.nome}" onchange="window.app.updateSocio(${socio.id}, 'nome', this.value)"></td>
+                <td><input type="number" step="0.01" value="${socio.proLabore}" onchange="window.app.updateSocio(${socio.id}, 'proLabore', parseFloat(this.value))"></td>
+                <td><input type="number" step="0.1" value="${socio.participacao}" onchange="window.app.updateSocio(${socio.id}, 'participacao', parseFloat(this.value))"></td>
+                <td><button class="btn-action btn-remove" onclick="window.app.removeSocio(${socio.id})">Remover</button></td>
+            </tr>
+        `).join('');
+    }
+
+    adicionarSocio() {
+        const newId = Math.max(...this.state.socios.map(s => s.id), 0) + 1;
+        this.state.socios.push({
+            id: newId,
+            nome: 'Novo Sócio',
+            proLabore: 3000.00,
+            participacao: 50
+        });
+        this.renderSocios();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    updateSocio(id, field, value) {
+        const socio = this.state.socios.find(s => s.id === id);
+        if (socio) {
+            socio[field] = value;
+            this.calculate();
+            this.saveToStorage();
+        }
+    }
+
+    removeSocio(id) {
+        this.state.socios = this.state.socios.filter(s => s.id !== id);
+        this.renderSocios();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    // CRUD Despesas Fixas
     renderDespesasFixas() {
         const tbody = document.getElementById('despesasFixasTableBody');
         if (!tbody) return;
@@ -624,254 +600,6 @@ class FinancialAnalysisApp {
         `).join('');
     }
 
-    renderParametros() {
-        const horasElement = document.getElementById('horasUteisPorDia');
-        const diasElement = document.getElementById('diasUteisPorMes');
-        const taxaElement = document.getElementById('taxaOcupacao');
-        
-        if (horasElement) horasElement.value = this.state.parametrosAtendimento.horasUteisPorDia;
-        if (diasElement) diasElement.value = this.state.parametrosAtendimento.diasUteisPorMes;
-        if (taxaElement) taxaElement.value = (this.state.parametrosAtendimento.taxaOcupacao * 100).toFixed(1);
-    }
-
-    renderConsumoMateriais() {
-        const container = document.getElementById('consumoMateriaisContainer');
-        if (!container) return;
-        
-        // CORREÇÃO: Se não há serviços, mostrar mensagem
-        if (this.state.servicos.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Nenhum serviço cadastrado</div>';
-            return;
-        }
-        
-        // Garantir que todos os serviços tenham entrada no consumo
-        this.state.servicos.forEach(servico => {
-            const hasConsumo = this.state.consumoMateriais.some(c => c.servicoId === servico.id);
-            if (!hasConsumo) {
-                // Serviço adicionado automaticamente na seção de consumo
-            }
-        });
-
-        container.innerHTML = this.state.servicos.map(servico => {
-            const consumos = this.state.consumoMateriais.filter(c => c.servicoId === servico.id);
-            const totalMateriais = this.calcularCustoMaterial(servico.id);
-
-            return `
-                <div class="servico-materiais">
-                    <div class="servico-header">
-                        <span class="servico-nome">${servico.nome}</span>
-                        <span class="total-materiais">Total: ${this.formatCurrency(totalMateriais)}</span>
-                    </div>
-                    <div class="materiais-list">
-                        ${consumos.map(consumo => {
-                            const material = this.state.materiais.find(m => m.id === consumo.materialId);
-                            if (!material) return '';
-                            
-                            const custoTotal = (material.custoUnitario / material.rendimento) * consumo.quantidade;
-                            return `
-                                <div class="material-item">
-                                    <div class="material-info">
-                                        <div class="material-nome">${material.nome}</div>
-                                        <div class="material-detalhes">
-                                            ${this.formatCurrency(material.custoUnitario/${material.rendimento})} por ${material.unidade} 
-                                            - Total: ${this.formatCurrency(custoTotal)}
-                                        </div>
-                                    </div>
-                                    <div class="material-actions">
-                                        <input type="number" value="${consumo.quantidade}" min="0" step="0.1"
-                                               onchange="window.app.updateConsumoMaterial(${servico.id}, ${material.id}, parseFloat(this.value))">
-                                        <span>${material.unidade}</span>
-                                        <button class="btn-action btn-remove" onclick="window.app.removeConsumoMaterial(${servico.id}, ${material.id})">×</button>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                        
-                        <div class="adicionar-material">
-                            <select class="select-material" id="selectMaterial${servico.id}">
-                                <option value="">Selecionar material...</option>
-                                ${this.state.materiais.filter(material => 
-                                    !consumos.some(c => c.materialId === material.id)
-                                ).map(material => 
-                                    `<option value="${material.id}">${material.nome}</option>`
-                                ).join('')}
-                            </select>
-                            <button class="btn btn-add-material" onclick="window.app.adicionarMaterialServico(${servico.id})">
-                                + Adicionar Material
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // === CRUD OPERATIONS ===
-    adicionarServico() {
-        const newId = Math.max(...this.state.servicos.map(s => s.id), 0) + 1;
-        this.state.servicos.push({
-            id: newId,
-            codigo: `SRV${newId.toString().padStart(2, '0')}`,
-            nome: 'Novo Serviço',
-            duracao: 60,
-            categoria: 'Corporal',
-            margemDesejada: 50
-        });
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-        this.showNotification('Serviço adicionado com sucesso!', 'success');
-    }
-
-    updateServico(id, field, value) {
-        const servico = this.state.servicos.find(s => s.id === id);
-        if (servico) {
-            servico[field] = value;
-            this.saveData();
-            this.calculate();
-        }
-    }
-
-    removeServico(id) {
-        this.state.servicos = this.state.servicos.filter(s => s.id !== id);
-        this.state.consumoMateriais = this.state.consumoMateriais.filter(c => c.servicoId !== id);
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-        this.showNotification('Serviço removido com sucesso!', 'success');
-    }
-
-    adicionarProduto() {
-        const newId = Math.max(...this.state.produtos.map(p => p.id), 0) + 1;
-        this.state.produtos.push({
-            id: newId,
-            codigo: `PROD${newId.toString().padStart(2, '0')}`,
-            nome: 'Novo Produto',
-            unidade: 'unid',
-            custoProduto: 0,
-            margemDesejada: 100,
-            categoria: 'Cosméticos'
-        });
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-        this.showNotification('Produto adicionado com sucesso!', 'success');
-    }
-
-    updateProduto(id, field, value) {
-        const produto = this.state.produtos.find(p => p.id === id);
-        if (produto) {
-            produto[field] = value;
-            this.saveData();
-            this.calculate();
-        }
-    }
-
-    removeProduto(id) {
-        this.state.produtos = this.state.produtos.filter(p => p.id !== id);
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-        this.showNotification('Produto removido com sucesso!', 'success');
-    }
-
-    adicionarMaterial() {
-        const newId = Math.max(...this.state.materiais.map(m => m.id), 0) + 1;
-        this.state.materiais.push({
-            id: newId,
-            codigo: `MAT${newId.toString().padStart(2, '0')}`,
-            nome: 'Novo Material',
-            custoUnitario: 0,
-            rendimento: 1,
-            unidade: 'unid'
-        });
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-    }
-
-    updateMaterial(id, field, value) {
-        const material = this.state.materiais.find(m => m.id === id);
-        if (material) {
-            material[field] = value;
-            this.saveData();
-            this.calculate();
-        }
-    }
-
-    removeMaterial(id) {
-        this.state.materiais = this.state.materiais.filter(m => m.id !== id);
-        this.state.consumoMateriais = this.state.consumoMateriais.filter(c => c.materialId !== id);
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-    }
-
-    adicionarEquipamento() {
-        const newId = Math.max(...this.state.equipamentos.map(e => e.id), 0) + 1;
-        this.state.equipamentos.push({
-            id: newId,
-            codigo: `EQP${newId.toString().padStart(2, '0')}`,
-            nome: 'Novo Equipamento',
-            custoAquisicao: 0,
-            vidaUtil: 36,
-            custoHora: 0
-        });
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-    }
-
-    updateEquipamento(id, field, value) {
-        const equipamento = this.state.equipamentos.find(e => e.id === id);
-        if (equipamento) {
-            equipamento[field] = value;
-            if (field === 'custoAquisicao' || field === 'vidaUtil') {
-                equipamento.custoHora = this.calcularCustoHora(equipamento);
-            }
-            this.saveData();
-            this.renderEquipamentos();
-            this.calculate();
-        }
-    }
-
-    removeEquipamento(id) {
-        this.state.equipamentos = this.state.equipamentos.filter(e => e.id !== id);
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-    }
-
-    adicionarFuncionario() {
-        const newId = Math.max(...this.state.funcionarios.map(f => f.id), 0) + 1;
-        this.state.funcionarios.push({
-            id: newId,
-            nome: 'Novo Funcionário',
-            cargo: 'Profissional',
-            salario: 0,
-            tipo: 'CLT'
-        });
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-    }
-
-    updateFuncionario(id, field, value) {
-        const funcionario = this.state.funcionarios.find(f => f.id === id);
-        if (funcionario) {
-            funcionario[field] = value;
-            this.saveData();
-            this.calculate();
-        }
-    }
-
-    removeFuncionario(id) {
-        this.state.funcionarios = this.state.funcionarios.filter(f => f.id !== id);
-        this.saveData();
-        this.renderAll();
-        this.calculate();
-    }
-
     adicionarDespesaFixa() {
         const newId = Math.max(...this.state.despesasFixas.map(d => d.id), 0) + 1;
         this.state.despesasFixas.push({
@@ -880,160 +608,269 @@ class FinancialAnalysisApp {
             valor: 0,
             categoria: 'Geral'
         });
-        this.saveData();
-        this.renderAll();
+        this.renderDespesasFixas();
         this.calculate();
+        this.saveToStorage();
     }
 
     updateDespesaFixa(id, field, value) {
         const despesa = this.state.despesasFixas.find(d => d.id === id);
         if (despesa) {
             despesa[field] = value;
-            this.saveData();
-            this.renderCounts();
             this.calculate();
+            this.saveToStorage();
         }
     }
 
     removeDespesaFixa(id) {
         this.state.despesasFixas = this.state.despesasFixas.filter(d => d.id !== id);
-        this.saveData();
-        this.renderAll();
+        this.renderDespesasFixas();
         this.calculate();
+        this.saveToStorage();
     }
 
-    // Consumo de materiais
-    adicionarMaterialServico(servicoId) {
-        const selectElement = document.getElementById(`selectMaterial${servicoId}`);
-        const materialId = parseInt(selectElement.value);
+    // CRUD Despesas Variáveis
+    renderDespesasVariaveis() {
+        const tbody = document.getElementById('despesasVariaveisTableBody');
+        if (!tbody) return;
         
-        if (materialId && !this.state.consumoMateriais.some(c => c.servicoId === servicoId && c.materialId === materialId)) {
-            this.state.consumoMateriais.push({
-                servicoId,
-                materialId,
-                quantidade: 1
-            });
-            this.saveData();
-            this.renderConsumoMateriais();
+        tbody.innerHTML = this.state.despesasVariaveis.map(despesa => `
+            <tr data-id="${despesa.id}">
+                <td><input type="text" value="${despesa.descricao}" onchange="window.app.updateDespesaVariavel(${despesa.id}, 'descricao', this.value)"></td>
+                <td><input type="number" step="0.01" value="${despesa.valor}" onchange="window.app.updateDespesaVariavel(${despesa.id}, 'valor', parseFloat(this.value))"></td>
+                <td><input type="text" value="${despesa.observacao}" onchange="window.app.updateDespesaVariavel(${despesa.id}, 'observacao', this.value)"></td>
+                <td><button class="btn-action btn-remove" onclick="window.app.removeDespesaVariavel(${despesa.id})">Remover</button></td>
+            </tr>
+        `).join('');
+    }
+
+    adicionarDespesaVariavel() {
+        const newId = Math.max(...this.state.despesasVariaveis.map(d => d.id), 0) + 1;
+        this.state.despesasVariaveis.push({
+            id: newId,
+            descricao: 'Nova Despesa Variável',
+            valor: 0,
+            observacao: ''
+        });
+        this.renderDespesasVariaveis();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    updateDespesaVariavel(id, field, value) {
+        const despesa = this.state.despesasVariaveis.find(d => d.id === id);
+        if (despesa) {
+            despesa[field] = value;
             this.calculate();
+            this.saveToStorage();
         }
+    }
+
+    removeDespesaVariavel(id) {
+        this.state.despesasVariaveis = this.state.despesasVariaveis.filter(d => d.id !== id);
+        this.renderDespesasVariaveis();
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    renderParametros() {
+        const fields = {
+            'horasUteisPorDia': this.state.parametrosAtendimento.horasUteisPorDia,
+            'diasUteisPorMes': this.state.parametrosAtendimento.diasUteisPorMes,
+            'taxaOcupacao': this.state.parametrosAtendimento.taxaOcupacao
+        };
+
+        Object.entries(fields).forEach(([fieldId, value]) => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.value = value;
+            }
+        });
+    }
+
+    renderParametrosProjecao() {
+        const fields = {
+            'mesesProjecao': this.state.parametrosProjecao.mesesProjecao,
+            'crescimentoReceita': this.state.parametrosProjecao.crescimentoReceita,
+            'crescimentoCustos': this.state.parametrosProjecao.crescimentoCustos,
+            'investimentoMarketing': this.state.parametrosProjecao.investimentoMarketing
+        };
+
+        Object.entries(fields).forEach(([fieldId, value]) => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.value = value;
+            }
+        });
+    }
+
+    // Renderizar Consumo de Materiais
+    renderConsumoMateriais() {
+        const container = document.getElementById('consumoMateriaisContainer');
+        if (!container) return;
+
+        container.innerHTML = this.state.servicos.map(servico => {
+            const materiaisHTML = this.state.materiais.map(material => {
+                const consumo = this.state.consumoMateriais.find(c => c.servicoId === servico.id && c.materialId === material.id);
+                const quantidade = consumo ? consumo.quantidade : 0;
+                
+                return `
+                    <div class="material-input">
+                        <label>${material.nome}</label>
+                        <input type="number" value="${quantidade}" step="0.1" 
+                               onchange="window.app.updateConsumoMaterial(${servico.id}, ${material.id}, parseFloat(this.value))">
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="consumo-servico">
+                    <div class="consumo-servico-header">${servico.nome}</div>
+                    <div class="consumo-servico-body">
+                        <div class="consumo-grid">
+                            ${materiaisHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     updateConsumoMaterial(servicoId, materialId, quantidade) {
-        const consumo = this.state.consumoMateriais.find(c => c.servicoId === servicoId && c.materialId === materialId);
-        if (consumo) {
-            consumo.quantidade = quantidade || 0;
-            this.saveData();
-            this.renderConsumoMateriais();
-            this.calculate();
-        }
-    }
-
-    removeConsumoMaterial(servicoId, materialId) {
-        this.state.consumoMateriais = this.state.consumoMateriais.filter(
-            c => !(c.servicoId === servicoId && c.materialId === materialId)
-        );
-        this.saveData();
-        this.renderConsumoMateriais();
-        this.calculate();
-    }
-
-    // === CÁLCULOS - CORREÇÕES PRINCIPAIS ===
-    calculate() {
-        // CORREÇÃO: Se não há dados nos cadastros, zerar todos os cálculos
-        if (this.state.servicos.length === 0 && this.state.produtos.length === 0) {
-            this.calculosServicos = [];
-            this.calculosProdutos = [];
-        } else {
-            this.calculosServicos = this.calcularCustosServicos();
-            this.calculosProdutos = this.calcularCustosProdutos();
+        const existingIndex = this.state.consumoMateriais.findIndex(c => c.servicoId === servicoId && c.materialId === materialId);
+        
+        if (existingIndex >= 0) {
+            if (quantidade > 0) {
+                this.state.consumoMateriais[existingIndex].quantidade = quantidade;
+            } else {
+                this.state.consumoMateriais.splice(existingIndex, 1);
+            }
+        } else if (quantidade > 0) {
+            this.state.consumoMateriais.push({ servicoId, materialId, quantidade });
         }
         
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    // Renderizar Produtos por Serviço
+    renderProdutosPorServico() {
+        const container = document.getElementById('produtosPorServicoContainer');
+        if (!container) return;
+
+        container.innerHTML = this.state.servicos.map(servico => {
+            const produtosHTML = this.state.produtos.map(produto => {
+                const consumo = this.state.produtosPorServico.find(p => p.servicoId === servico.id && p.produtoId === produto.id);
+                const quantidade = consumo ? consumo.quantidade : 0;
+                
+                return `
+                    <div class="produto-input">
+                        <label>${produto.nome} (R$ ${produto.custoProduto.toFixed(2)})</label>
+                        <input type="number" value="${quantidade}" step="0.01" 
+                               onchange="window.app.updateProdutosPorServico(${servico.id}, ${produto.id}, parseFloat(this.value))">
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="produtos-servico">
+                    <div class="produtos-servico-header">${servico.nome}</div>
+                    <div class="produtos-servico-body">
+                        <div class="produtos-grid">
+                            ${produtosHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    updateProdutosPorServico(servicoId, produtoId, quantidade) {
+        const existingIndex = this.state.produtosPorServico.findIndex(p => p.servicoId === servicoId && p.produtoId === produtoId);
+        
+        if (existingIndex >= 0) {
+            if (quantidade > 0) {
+                this.state.produtosPorServico[existingIndex].quantidade = quantidade;
+            } else {
+                this.state.produtosPorServico.splice(existingIndex, 1);
+            }
+        } else if (quantidade > 0) {
+            this.state.produtosPorServico.push({ servicoId, produtoId, quantidade });
+        }
+        
+        this.calculate();
+        this.saveToStorage();
+    }
+
+    // Cálculos principais
+    calculate() {
+        this.calculosServicos = this.calcularCustosServicos();
+        this.calculosProdutos = this.calcularCustosProdutos();
+        this.renderCustoHoraDetalhado();
         this.renderCalculos();
         this.renderRelatorios();
         this.renderDashboard();
-        if (this.currentSection === 'dashboard') {
-            setTimeout(() => this.renderDashboardCharts(), 100);
-        }
     }
 
     calcularCustosServicos() {
-        // CORREÇÃO: Se não há serviços, retornar array vazio
-        if (this.state.servicos.length === 0) {
-            return [];
-        }
-
         const { parametrosAtendimento } = this.state;
-        const custoFixoTotal = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
-        
-        // Custo de mão de obra por hora
-        const custoMaoObraTotal = this.state.funcionarios.reduce((sum, f) => {
-            const encargos = f.tipo === 'CLT' ? 
-                Object.values(this.state.encargos.clt).reduce((s, e) => s + e, 0) / 100 :
-                0;
-            return sum + (f.salario * (1 + encargos));
-        }, 0);
-
         const horasProdutivasMes = parametrosAtendimento.horasUteisPorDia * parametrosAtendimento.diasUteisPorMes;
-        const custoMaoObraHora = horasProdutivasMes > 0 ? custoMaoObraTotal / horasProdutivasMes : 0;
         
-        // Sessões mensais estimadas
-        const sessionesEstimadas = horasProdutivasMes * parametrosAtendimento.taxaOcupacao;
-        const custoFixoPorSessao = sessionesEstimadas > 0 ? custoFixoTotal / sessionesEstimadas : 0;
+        // Calcular custos fixos total
+        const custoOperacionais = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
+        const custoFolhaCLT = this.state.funcionarios.reduce((sum, f) => sum + f.salario * 1.5544, 0); // 55.44% encargos
+        const custoProLabore = this.state.socios.reduce((sum, s) => sum + s.proLabore * 1.11, 0); // 11% INSS
+        const custoFixoTotal = custoOperacionais + custoFolhaCLT + custoProLabore;
+        
+        const sessoesMes = horasProdutivasMes * (parametrosAtendimento.taxaOcupacao / 100);
+        const custoFixoPorSessao = sessoesMes > 0 ? custoFixoTotal / sessoesMes : 0;
+        const custoMaoObraHora = this.state.funcionarios.length > 0 ? 
+            (this.state.funcionarios.reduce((sum, f) => sum + f.salario * 1.5544, 0)) / horasProdutivasMes : 0;
 
         return this.state.servicos.map(servico => {
-            const custoMaterial = this.calcularCustoMaterial(servico.id);
+            const custoMaterial = this.calcularCustoMaterialServico(servico.id);
+            const custoProdutosConsumidos = this.calcularCustoProdutosConsumidos(servico.id);
+            const custoMaterialTotal = custoMaterial + custoProdutosConsumidos;
             const custoMaoObra = custoMaoObraHora * (servico.duracao / 60);
             const custoEquipamento = this.calcularCustoEquipamento(servico.duracao);
-            const custoTotal = custoMaterial + custoMaoObra + custoEquipamento + custoFixoPorSessao;
-            const precoFinal = custoTotal * (1 + servico.margemDesejada / 100);
+            const custoTotal = custoMaterialTotal + custoMaoObra + custoEquipamento + custoFixoPorSessao;
+            
+            // Markup individual por serviço
+            const markupFactor = servico.margemDesejada / (100 - servico.margemDesejada);
+            const precoSugerido = custoTotal * (1 + markupFactor);
+            const margem = custoTotal > 0 ? servico.margemDesejada : 0;
 
             return {
                 servico,
-                custoMaterial,
+                custoMaterial: custoMaterialTotal,
                 custoMaoObra,
                 custoEquipamento,
                 custoFixoRateado: custoFixoPorSessao,
                 custoTotal,
-                precoFinal,
-                margem: servico.margemDesejada
+                precoSugerido,
+                margem
             };
         });
     }
 
-    calcularCustosProdutos() {
-        // CORREÇÃO: Se não há produtos, retornar array vazio
-        if (this.state.produtos.length === 0) {
-            return [];
-        }
-
-        const custoFixoTotal = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
-        const totalProdutos = this.state.produtos.length;
-        const custoFixoRateadoPorProduto = totalProdutos > 0 ? custoFixoTotal / totalProdutos : 0;
-
-        return this.state.produtos.map(produto => {
-            const custosRateados = custoFixoRateadoPorProduto * 0.1; // 10% do custo fixo rateado para produtos
-            const custoTotal = produto.custoProduto + custosRateados;
-            const precoFinal = custoTotal * (1 + produto.margemDesejada / 100);
-
-            return {
-                produto,
-                custoProduto: produto.custoProduto,
-                custosRateados,
-                custoTotal,
-                margemDesejada: produto.margemDesejada,
-                precoFinal
-            };
-        });
-    }
-
-    calcularCustoMaterial(servicoId) {
+    calcularCustoMaterialServico(servicoId) {
         const consumos = this.state.consumoMateriais.filter(c => c.servicoId === servicoId);
         return consumos.reduce((total, consumo) => {
             const material = this.state.materiais.find(m => m.id === consumo.materialId);
-            if (material && material.rendimento > 0) {
+            if (material) {
                 const custoUnitario = material.custoUnitario / material.rendimento;
                 return total + (custoUnitario * consumo.quantidade);
+            }
+            return total;
+        }, 0);
+    }
+
+    calcularCustoProdutosConsumidos(servicoId) {
+        const produtosConsumidos = this.state.produtosPorServico.filter(p => p.servicoId === servicoId);
+        return produtosConsumidos.reduce((total, consumo) => {
+            const produto = this.state.produtos.find(p => p.id === consumo.produtoId);
+            if (produto) {
+                return total + (produto.custoProduto * consumo.quantidade);
             }
             return total;
         }, 0);
@@ -1046,185 +883,282 @@ class FinancialAnalysisApp {
         }, 0);
     }
 
-    calcularCustoHora(equipamento) {
-        const horasTotais = equipamento.vidaUtil * this.state.parametrosAtendimento.horasUteisPorDia * this.state.parametrosAtendimento.diasUteisPorMes;
-        return horasTotais > 0 ? equipamento.custoAquisicao / horasTotais : 0;
+    calcularCustosProdutos() {
+        const custoFixoTotal = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
+        const custoRateadoPorProduto = this.state.produtos.length > 0 ? custoFixoTotal / this.state.produtos.length : 0;
+
+        return this.state.produtos.map(produto => {
+            const custoTotal = produto.custoProduto + custoRateadoPorProduto;
+            const markupFactor = produto.margemDesejada / 100;
+            const precoVenda = produto.custoProduto * (1 + markupFactor);
+            const margem = produto.margemDesejada;
+
+            return {
+                produto,
+                custoProduto: produto.custoProduto,
+                custoRateado: custoRateadoPorProduto,
+                custoTotal,
+                precoVenda,
+                margem
+            };
+        });
+    }
+
+    // Renderizar Custo de Hora Detalhado
+    renderCustoHoraDetalhado() {
+        const custoSalarios = this.state.funcionarios.reduce((sum, f) => sum + f.salario * 1.5544, 0);
+        const custoProLabore = this.state.socios.reduce((sum, s) => sum + s.proLabore * 1.11, 0);
+        const totalFolha = custoSalarios + custoProLabore;
+        const horasProdutivasMes = this.state.parametrosAtendimento.horasUteisPorDia * this.state.parametrosAtendimento.diasUteisPorMes;
+        const custoPorHora = horasProdutivasMes > 0 ? totalFolha / horasProdutivasMes : 0;
+
+        this.updateElementText('custoSalarios', this.formatCurrency(custoSalarios));
+        this.updateElementText('custoProLabore', this.formatCurrency(custoProLabore));
+        this.updateElementText('totalFolha', this.formatCurrency(totalFolha));
+        this.updateElementText('horasProdutivas', horasProdutivasMes + 'h');
+        this.updateElementText('custoPorHoraFinal', this.formatCurrency(custoPorHora));
     }
 
     renderCalculos() {
-        // Render serviços - CORREÇÃO: verificar se há dados
-        const servicosTableBody = document.getElementById('calculosServicosTableBody');
-        if (servicosTableBody) {
-            if (this.calculosServicos.length === 0) {
-                servicosTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #666; padding: 20px;">Nenhum serviço cadastrado</td></tr>';
-            } else {
-                servicosTableBody.innerHTML = this.calculosServicos.map(calc => `
-                    <tr>
-                        <td>${calc.servico.nome}</td>
-                        <td>${this.formatCurrency(calc.custoMaterial)}</td>
-                        <td>${this.formatCurrency(calc.custoMaoObra)}</td>
-                        <td>${this.formatCurrency(calc.custoEquipamento)}</td>
-                        <td>${this.formatCurrency(calc.custoFixoRateado)}</td>
-                        <td><strong>${this.formatCurrency(calc.custoTotal)}</strong></td>
-                        <td><strong>${this.formatCurrency(calc.precoFinal)}</strong></td>
-                        <td>${calc.margem.toFixed(1)}%</td>
-                    </tr>
-                `).join('');
-            }
+        // Renderizar cálculos de serviços
+        const tbodyServicos = document.getElementById('calculosServicosTableBody');
+        if (tbodyServicos && this.calculosServicos) {
+            tbodyServicos.innerHTML = this.calculosServicos.map(calculo => `
+                <tr>
+                    <td>${calculo.servico.nome}</td>
+                    <td>${this.formatCurrency(calculo.custoMaterial)}</td>
+                    <td>${this.formatCurrency(calculo.custoMaoObra)}</td>
+                    <td>${this.formatCurrency(calculo.custoEquipamento)}</td>
+                    <td>${this.formatCurrency(calculo.custoFixoRateado)}</td>
+                    <td><strong>${this.formatCurrency(calculo.custoTotal)}</strong></td>
+                    <td><strong>${this.formatCurrency(calculo.precoSugerido)}</strong></td>
+                    <td>${calculo.margem.toFixed(1)}%</td>
+                </tr>
+            `).join('');
         }
 
-        // Render produtos - CORREÇÃO: verificar se há dados
-        const produtosTableBody = document.getElementById('calculosProdutosTableBody');
-        if (produtosTableBody) {
-            if (this.calculosProdutos.length === 0) {
-                produtosTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666; padding: 20px;">Nenhum produto cadastrado</td></tr>';
-            } else {
-                produtosTableBody.innerHTML = this.calculosProdutos.map(calc => `
-                    <tr>
-                        <td>${calc.produto.nome}</td>
-                        <td>${this.formatCurrency(calc.custoProduto)}</td>
-                        <td>${this.formatCurrency(calc.custosRateados)}</td>
-                        <td><strong>${this.formatCurrency(calc.custoTotal)}</strong></td>
-                        <td>${calc.margemDesejada.toFixed(1)}%</td>
-                        <td><strong>${this.formatCurrency(calc.precoFinal)}</strong></td>
-                    </tr>
-                `).join('');
-            }
+        // Renderizar cálculos de produtos
+        const tbodyProdutos = document.getElementById('calculosProdutosTableBody');
+        if (tbodyProdutos && this.calculosProdutos) {
+            tbodyProdutos.innerHTML = this.calculosProdutos.map(calculo => `
+                <tr>
+                    <td>${calculo.produto.nome}</td>
+                    <td>${this.formatCurrency(calculo.custoProduto)}</td>
+                    <td>${this.formatCurrency(calculo.custoRateado)}</td>
+                    <td><strong>${this.formatCurrency(calculo.custoTotal)}</strong></td>
+                    <td><strong>${this.formatCurrency(calculo.precoVenda)}</strong></td>
+                    <td>${calculo.margem.toFixed(1)}%</td>
+                </tr>
+            `).join('');
         }
     }
 
-    // CORREÇÃO PRINCIPAL: Dashboard com validações
     renderDashboard() {
-        // CORREÇÃO: Verificar se há dados antes de calcular
-        const receitaServicos = this.calculosServicos.length > 0 ? 
-            this.calculosServicos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0;
-        const receitaProdutos = this.calculosProdutos.length > 0 ? 
-            this.calculosProdutos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0;
-        const receitaTotal = receitaServicos + receitaProdutos;
+        if (!this.calculosServicos || this.calculosServicos.length === 0) return;
 
-        this.updateElementText('receitaTotal', this.formatCurrency(receitaTotal));
-        this.updateElementText('totalServicos', this.state.servicos.length);
-        this.updateElementText('totalProdutos', this.state.produtos.length);
-
-        // Valores médios - CORREÇÃO: verificar divisão por zero
-        const valorMedioServicos = this.calculosServicos.length > 0 ? receitaServicos / this.calculosServicos.length : 0;
-        const valorMedioProdutos = this.calculosProdutos.length > 0 ? receitaProdutos / this.calculosProdutos.length : 0;
+        // Calcular KPIs
+        const receitaServicos = this.calculosServicos.reduce((sum, calc) => sum + calc.precoSugerido, 0) * 10;
+        const receitaProdutos = this.calculosProdutos.reduce((sum, calc) => sum + calc.precoVenda, 0) * 5;
+        const receitaMensal = receitaServicos + receitaProdutos;
+        const ticketMedio = this.calculosServicos.reduce((sum, calc) => sum + calc.precoSugerido, 0) / this.calculosServicos.length;
+        const margemMedia = this.calculosServicos.reduce((sum, calc) => sum + calc.margem, 0) / this.calculosServicos.length;
         
-        this.updateElementText('valorMedioServicos', 'Valor Médio: ' + this.formatCurrency(valorMedioServicos));
-        this.updateElementText('valorMedioProdutos', 'Valor Médio: ' + this.formatCurrency(valorMedioProdutos));
+        const custoFixoTotal = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
+        const custoVariavelTotal = this.state.despesasVariaveis.reduce((sum, d) => sum + d.valor, 0);
+        const resultadoMensal = receitaMensal - custoFixoTotal - custoVariavelTotal;
 
-        // Margem operacional - CORREÇÃO: verificar se há receita
-        const custoTotal = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
-        const margemOperacional = receitaTotal > 0 ? ((receitaTotal - custoTotal) / receitaTotal) * 100 : 0;
-        this.updateElementText('margemOperacional', margemOperacional.toFixed(1) + '%');
-
-        // Atualizar simulação rápida
-        const taxaAtual = document.getElementById('taxaSimulacao')?.value || 75;
-        this.updateSimulacaoRapida(taxaAtual / 100);
+        this.updateElementText('receitaMensal', this.formatCurrency(receitaMensal));
+        this.updateElementText('ticketMedioDash', this.formatCurrency(ticketMedio));
+        this.updateElementText('margemMediaDash', margemMedia.toFixed(1) + '%');
+        this.updateElementText('resultadoMensalDash', this.formatCurrency(resultadoMensal));
     }
 
-    // CORREÇÃO: Simulação rápida com validações
-    updateSimulacaoRapida(taxa) {
-        // CORREÇÃO: Verificar se há dados
-        const receitaServicos = this.calculosServicos.length > 0 ? 
-            this.calculosServicos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0;
-        const receitaProdutos = this.calculosProdutos.length > 0 ? 
-            this.calculosProdutos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0;
-        const receitaTotal = (receitaServicos + receitaProdutos) * taxa;
-        
-        const custosFixos = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
-        const resultado = receitaTotal - custosFixos;
+    renderDashboardCharts() {
+        if (!this.calculosServicos || this.calculosServicos.length === 0) return;
 
-        this.updateElementText('receitaSimulacao', this.formatCurrency(receitaTotal));
-        this.updateElementText('resultadoSimulacao', this.formatCurrency(resultado));
+        // Receita por serviço
+        const canvasReceita = document.getElementById('receitaPorServicoChart');
+        if (canvasReceita) {
+            const ctx = canvasReceita.getContext('2d');
+            
+            if (this.charts.receitaServico) {
+                this.charts.receitaServico.destroy();
+            }
+
+            this.charts.receitaServico = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: this.calculosServicos.map(c => c.servico.nome),
+                    datasets: [{
+                        label: 'Preço Sugerido',
+                        data: this.calculosServicos.map(c => c.precoSugerido),
+                        backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5', '#5D878F']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Composição de custos
+        const canvasCustos = document.getElementById('custosComposicaoChart');
+        if (canvasCustos) {
+            const ctx = canvasCustos.getContext('2d');
+            
+            if (this.charts.custosComposicao) {
+                this.charts.custosComposicao.destroy();
+            }
+
+            const custoFixoTotal = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
+            const custoMaterialTotal = this.calculosServicos.reduce((sum, calc) => sum + calc.custoMaterial, 0);
+            const custoMaoObraTotal = this.calculosServicos.reduce((sum, calc) => sum + calc.custoMaoObra, 0);
+            const custoEquipamentoTotal = this.calculosServicos.reduce((sum, calc) => sum + calc.custoEquipamento, 0);
+
+            this.charts.custosComposicao = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Custos Fixos', 'Materiais', 'Mão de Obra', 'Equipamentos'],
+                    datasets: [{
+                        data: [custoFixoTotal, custoMaterialTotal, custoMaoObraTotal, custoEquipamentoTotal],
+                        backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#5D878F']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
     }
 
-    // CORREÇÃO PRINCIPAL: Relatórios com validações
     renderRelatorios() {
-        // Tickets médios - CORREÇÃO: verificar se há dados
-        const ticketMedioServicos = this.calculosServicos.length > 0 ? 
-            this.calculosServicos.reduce((sum, calc) => sum + calc.precoFinal, 0) / this.calculosServicos.length : 0;
-        const ticketMedioProdutos = this.calculosProdutos.length > 0 ? 
-            this.calculosProdutos.reduce((sum, calc) => sum + calc.precoFinal, 0) / this.calculosProdutos.length : 0;
+        if (!this.calculosServicos || this.calculosServicos.length === 0) return;
 
-        this.updateElementText('ticketMedioServicos', this.formatCurrency(ticketMedioServicos));
-        this.updateElementText('ticketMedioProdutos', this.formatCurrency(ticketMedioProdutos));
+        // Calcular valores para o DRE detalhado
+        const receitaServicos = this.calculosServicos.reduce((sum, calc) => sum + calc.precoSugerido, 0) * 10;
+        const receitaProdutos = this.calculosProdutos.reduce((sum, calc) => sum + calc.precoVenda, 0) * 5;
+        const receitaBruta = receitaServicos + receitaProdutos;
+        
+        // Custos variáveis detalhados
+        const custoMateriais = this.calculosServicos.reduce((sum, calc) => sum + calc.custoMaterial, 0) * 10;
+        const custoComissoes = this.state.despesasVariaveis.find(d => d.descricao.includes('Comissão'))?.valor || 0;
+        const custosOutrosVariaveis = this.state.despesasVariaveis.reduce((sum, d) => sum + d.valor, 0) - custoComissoes;
+        const custosVariaveisTotal = custoMateriais + custoComissoes + custosOutrosVariaveis;
+        
+        // Margem de contribuição
+        const margemContribuicaoValor = receitaBruta - custosVariaveisTotal;
+        
+        // Custos fixos detalhados
+        const custoFolhaCLT = this.state.funcionarios.reduce((sum, f) => sum + f.salario * 1.5544, 0);
+        const custoProLaboreTotal = this.state.socios.reduce((sum, s) => sum + s.proLabore * 1.11, 0);
+        const custosOperacionais = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
+        const depreciacao = this.state.equipamentos.reduce((sum, e) => sum + (e.custoAquisicao / e.vidaUtil), 0);
+        const custosFixosTotal = custoFolhaCLT + custoProLaboreTotal + custosOperacionais + depreciacao;
+        
+        // EBITDA
+        const ebitda = margemContribuicaoValor - custosFixosTotal;
+        
+        // Impostos
+        const iss = receitaServicos * 0.05; // 5% ISS sobre serviços
+        
+        // Resultado líquido
+        const resultadoLiquido = ebitda - iss;
 
-        // Mix - CORREÇÃO: verificar divisão por zero
-        const receitaServicos = this.calculosServicos.length > 0 ? 
-            this.calculosServicos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0;
-        const receitaProdutos = this.calculosProdutos.length > 0 ? 
-            this.calculosProdutos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0;
-        const receitaTotal = receitaServicos + receitaProdutos;
-
-        const mixServicos = receitaTotal > 0 ? (receitaServicos / receitaTotal) * 100 : 0;
-        const mixProdutos = receitaTotal > 0 ? (receitaProdutos / receitaTotal) * 100 : 0;
-
-        this.updateElementText('mixServicos', mixServicos.toFixed(1) + '%');
-        this.updateElementText('mixProdutos', mixProdutos.toFixed(1) + '%');
-
-        // DRE - CORREÇÃO: todos os valores zerados quando não há dados
+        // Atualizar DRE detalhado
         this.updateElementText('receitaServicos', this.formatCurrency(receitaServicos));
         this.updateElementText('receitaProdutos', this.formatCurrency(receitaProdutos));
-        this.updateElementText('receitaBrutaTotal', this.formatCurrency(receitaTotal));
+        this.updateElementText('receitaBrutaTotal', this.formatCurrency(receitaBruta));
+        
+        this.updateElementText('custoMateriais', this.formatCurrency(custoMateriais));
+        this.updateElementText('custoComissoes', this.formatCurrency(custoComissoes));
+        this.updateElementText('custosOutrosVariaveis', this.formatCurrency(custosOutrosVariaveis));
+        this.updateElementText('custosVariaveisTotal', this.formatCurrency(custosVariaveisTotal));
+        
+        this.updateElementText('margemContribuicaoValor', this.formatCurrency(margemContribuicaoValor));
+        
+        this.updateElementText('custoFolhaCLT', this.formatCurrency(custoFolhaCLT));
+        this.updateElementText('custoProLaboreTotal', this.formatCurrency(custoProLaboreTotal));
+        this.updateElementText('custosOperacionais', this.formatCurrency(custosOperacionais));
+        this.updateElementText('depreciacao', this.formatCurrency(depreciacao));
+        this.updateElementText('custosFixosTotal', this.formatCurrency(custosFixosTotal));
+        
+        this.updateElementText('ebitda', this.formatCurrency(ebitda));
+        this.updateElementText('iss', this.formatCurrency(iss));
+        this.updateElementText('resultadoLiquido', this.formatCurrency(resultadoLiquido));
 
-        const custosVariaveisServicos = this.calculosServicos.length > 0 ? this.calculosServicos.reduce((sum, calc) => 
-            sum + calc.custoMaterial + calc.custoMaoObra + calc.custoEquipamento, 0) : 0;
-        const custosVariaveisProdutos = this.calculosProdutos.length > 0 ? this.calculosProdutos.reduce((sum, calc) => sum + calc.custoProduto, 0) : 0;
+        // Indicadores básicos
+        const ticketMedio = this.calculosServicos.reduce((sum, calc) => sum + calc.precoSugerido, 0) / this.calculosServicos.length;
+        const custoPorSessao = this.calculosServicos.reduce((sum, calc) => sum + calc.custoTotal, 0) / this.calculosServicos.length;
+        const horasProdutivasMes = this.state.parametrosAtendimento.horasUteisPorDia * this.state.parametrosAtendimento.diasUteisPorMes;
+        const faturamentoHora = receitaBruta / horasProdutivasMes;
+        const margemContrib = receitaBruta > 0 ? (margemContribuicaoValor / receitaBruta) * 100 : 0;
+        
+        this.updateElementText('ticketMedio', this.formatCurrency(ticketMedio));
+        this.updateElementText('custoPorSessao', this.formatCurrency(custoPorSessao));
+        this.updateElementText('faturamentoHora', this.formatCurrency(faturamentoHora));
+        this.updateElementText('margemContribuicao', margemContrib.toFixed(1) + '%');
 
-        this.updateElementText('custosVariaveisServicos', this.formatCurrency(custosVariaveisServicos));
-        this.updateElementText('custosVariaveisProdutos', this.formatCurrency(custosVariaveisProdutos));
+        // Indicadores avançados
+        const margemLiquida = receitaBruta > 0 ? (resultadoLiquido / receitaBruta) * 100 : 0;
+        const investimentoTotal = this.state.equipamentos.reduce((sum, e) => sum + e.custoAquisicao, 0);
+        const roiAnual = investimentoTotal > 0 ? (resultadoLiquido * 12 / investimentoTotal) * 100 : 0;
+        const payback = resultadoLiquido > 0 ? investimentoTotal / resultadoLiquido : 0;
+        
+        this.updateElementText('margemLiquida', margemLiquida.toFixed(1) + '%');
+        this.updateElementText('ebitdaValor', this.formatCurrency(ebitda));
+        this.updateElementText('roiAnual', roiAnual.toFixed(1) + '%');
+        this.updateElementText('payback', payback.toFixed(0) + ' meses');
 
-        const margemContribuicao = receitaTotal - custosVariaveisServicos - custosVariaveisProdutos;
-        this.updateElementText('margemContribuicaoTotal', this.formatCurrency(margemContribuicao));
-
-        const despesasFixasTotal = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
-        this.updateElementText('despesasFixasTotal', this.formatCurrency(despesasFixasTotal));
-
-        const resultadoLiquido = margemContribuicao - despesasFixasTotal;
-        this.updateElementText('resultadoLiquidoTotal', this.formatCurrency(resultadoLiquido));
-
-        // Análise de viabilidade
-        this.renderAnaliseViabilidade(resultadoLiquido, receitaTotal);
+        // Análise de Viabilidade
+        this.renderAnaliseViabilidade(resultadoLiquido);
     }
 
-    renderAnaliseViabilidade(resultado, receita) {
-        const statusElement = document.getElementById('statusViabilidade');
+    renderAnaliseViabilidade(resultado) {
+        const statusElement = document.getElementById('statusBadge');
         const recomendacoesList = document.getElementById('listaRecomendacoes');
         
         if (!statusElement || !recomendacoesList) return;
         
         let status, statusClass, recomendacoes = [];
 
-        // CORREÇÃO: Se não há dados, status específico
-        if (this.state.servicos.length === 0 && this.state.produtos.length === 0) {
-            status = 'Sem dados para análise';
-            statusClass = 'status--info';
-            recomendacoes.push('Cadastre serviços e produtos para realizar a análise de viabilidade');
+        if (resultado > 5000) {
+            status = 'Negócio Muito Viável';
+            statusClass = 'status--success';
+            recomendacoes.push('O negócio apresenta excelente resultado com os parâmetros atuais');
+            recomendacoes.push('Considere expansão ou investimento em novos equipamentos');
         } else if (resultado > 0) {
             status = 'Negócio Viável';
             statusClass = 'status--success';
-            recomendacoes.push('O negócio apresenta resultado positivo considerando serviços e produtos');
-            
-            const margemLiquida = (resultado / receita) * 100;
-            if (margemLiquida < 10) {
-                recomendacoes.push('Margem líquida baixa. Considere otimizar custos ou aumentar preços');
-            }
-            if (margemLiquida > 20) {
-                recomendacoes.push('Excelente margem líquida. Considere investir em expansão');
-            }
-        } else if (resultado > -5000) {
+            recomendacoes.push('O negócio apresenta resultado positivo');
+            recomendacoes.push('Foque em aumentar a taxa de ocupação e melhorar processos');
+        } else if (resultado > -2000) {
             status = 'Atenção Necessária';
             statusClass = 'status--warning';
             recomendacoes.push('O negócio está próximo do ponto de equilíbrio');
-            recomendacoes.push('Revise a estratégia de mix entre serviços e produtos');
-            recomendacoes.push('Considere aumentar as vendas de produtos (maior margem)');
+            recomendacoes.push('Revise custos fixos e estratégias de marketing');
         } else {
             status = 'Não Viável';
             statusClass = 'status--error';
             recomendacoes.push('O negócio apresenta prejuízo significativo');
-            recomendacoes.push('Reavalie preços de serviços e produtos');
-            recomendacoes.push('Reduza custos fixos ou melhore eficiência operacional');
+            recomendacoes.push('Reavalie completamente o modelo de negócio');
         }
 
         statusElement.className = `status ${statusClass}`;
@@ -1233,164 +1167,198 @@ class FinancialAnalysisApp {
         recomendacoesList.innerHTML = recomendacoes.map(rec => `<li>${rec}</li>`).join('');
     }
 
-    // === CHARTS - CORREÇÕES ===
-    renderDashboardCharts() {
-        console.log('Renderizando gráficos do dashboard...');
-        const canvas = document.getElementById('mixReceitaChart');
-        if (!canvas) {
-            console.error('Canvas do gráfico não encontrado');
-            return;
-        }
-        
-        const ctx = canvas.getContext('2d');
-        
-        if (this.charts.mixReceita) {
-            this.charts.mixReceita.destroy();
-        }
+    renderReportCharts() {
+        if (!this.calculosServicos || this.calculosServicos.length === 0) return;
 
-        // CORREÇÃO: Verificar se há dados
-        const receitaServicos = this.calculosServicos.length > 0 ? 
-            this.calculosServicos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0;
-        const receitaProdutos = this.calculosProdutos.length > 0 ? 
-            this.calculosProdutos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0;
+        // Gráfico de composição de custos
+        const canvasCustos = document.getElementById('custosChart');
+        if (canvasCustos) {
+            const ctx = canvasCustos.getContext('2d');
+            
+            if (this.charts.custos) {
+                this.charts.custos.destroy();
+            }
 
-        console.log('Receita serviços:', receitaServicos);
-        console.log('Receita produtos:', receitaProdutos);
+            const custoFixoTotal = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
+            const custoMaterialTotal = this.calculosServicos.reduce((sum, calc) => sum + calc.custoMaterial, 0);
+            const custoMaoObraTotal = this.calculosServicos.reduce((sum, calc) => sum + calc.custoMaoObra, 0);
+            const custoEquipamentoTotal = this.calculosServicos.reduce((sum, calc) => sum + calc.custoEquipamento, 0);
 
-        // Se não há dados, mostrar gráfico vazio ou com mensagem
-        if (receitaServicos === 0 && receitaProdutos === 0) {
-            this.charts.mixReceita = new Chart(ctx, {
-                type: 'doughnut',
+            this.charts.custos = new Chart(ctx, {
+                type: 'pie',
                 data: {
-                    labels: ['Sem dados'],
+                    labels: ['Custos Fixos', 'Materiais', 'Mão de Obra', 'Equipamentos'],
                     datasets: [{
-                        data: [1],
-                        backgroundColor: ['#cccccc']
+                        data: [custoFixoTotal, custoMaterialTotal, custoMaoObraTotal, custoEquipamentoTotal],
+                        backgroundColor: ['#1FB8CD', '#FFC185', '#B4413C', '#5D878F']
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'bottom'
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // Gráfico receita vs custos
+        const canvasReceitaCustos = document.getElementById('receitaCustosChart');
+        if (canvasReceitaCustos) {
+            const ctx = canvasReceitaCustos.getContext('2d');
+            
+            if (this.charts.receitaCustos) {
+                this.charts.receitaCustos.destroy();
+            }
+
+            const receitaTotal = this.calculosServicos.reduce((sum, calc) => sum + calc.precoSugerido, 0) * 10;
+            const custoTotal = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0) + 
+                              this.state.despesasVariaveis.reduce((sum, d) => sum + d.valor, 0);
+
+            this.charts.receitaCustos = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mensal'],
+                    datasets: [{
+                        label: 'Receita',
+                        data: [receitaTotal],
+                        backgroundColor: '#1FB8CD'
+                    }, {
+                        label: 'Custos',
+                        data: [custoTotal],
+                        backgroundColor: '#B4413C'
+                    }, {
+                        label: 'Resultado',
+                        data: [receitaTotal - custoTotal],
+                        backgroundColor: receitaTotal - custoTotal >= 0 ? '#5D878F' : '#DB4545'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                }
+                            }
                         }
                     }
                 }
             });
-            return;
         }
-
-        this.charts.mixReceita = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Serviços', 'Produtos'],
-                datasets: [{
-                    data: [receitaServicos, receitaProdutos],
-                    backgroundColor: ['#1FB8CD', '#FFC185']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const value = context.parsed;
-                                const total = receitaServicos + receitaProdutos;
-                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                return `${context.label}: R$ ${value.toLocaleString('pt-BR')} (${percentage}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        
-        console.log('Gráfico do dashboard renderizado com sucesso');
     }
 
-    renderReportCharts() {
-        const canvas = document.getElementById('analiseChart');
-        if (!canvas) return;
+    // Projeção de Crescimento
+    calcularProjecao() {
+        const { mesesProjecao, crescimentoReceita, crescimentoCustos, investimentoMarketing } = this.state.parametrosProjecao;
         
-        const ctx = canvas.getContext('2d');
+        // Base mensal atual
+        const receitaBase = this.calculosServicos.reduce((sum, calc) => sum + calc.precoSugerido, 0) * 10;
+        const custoVariavelBase = this.state.despesasVariaveis.reduce((sum, d) => sum + d.valor, 0);
+        const custoFixoBase = this.state.despesasFixas.reduce((sum, d) => sum + d.valor, 0);
         
-        if (this.charts.analise) {
-            this.charts.analise.destroy();
+        this.projecaoData = [];
+        let receitaAcumulada = 0;
+        let resultadoAcumulado = 0;
+        let breakEvenFound = false;
+        let breakEvenMes = 0;
+
+        for (let mes = 1; mes <= mesesProjecao; mes++) {
+            const fatorCrescimentoReceita = Math.pow(1 + crescimentoReceita / 100, mes - 1);
+            const fatorCrescimentoCustos = Math.pow(1 + crescimentoCustos / 100, mes - 1);
+            
+            const receita = receitaBase * fatorCrescimentoReceita;
+            const custoVariavel = custoVariavelBase * fatorCrescimentoCustos;
+            const custoFixo = custoFixoBase * fatorCrescimentoCustos;
+            const marketing = investimentoMarketing;
+            const resultado = receita - custoVariavel - custoFixo - marketing;
+            
+            receitaAcumulada += receita;
+            resultadoAcumulado += resultado;
+            
+            if (!breakEvenFound && resultadoAcumulado >= 0) {
+                breakEvenFound = true;
+                breakEvenMes = mes;
+            }
+
+            this.projecaoData.push({
+                mes,
+                receita,
+                custoVariavel,
+                custoFixo,
+                marketing,
+                resultado,
+                resultadoAcumulado
+            });
         }
 
-        // CORREÇÃO: Verificar se há dados
-        const servicosData = this.calculosServicos.length > 0 ? this.calculosServicos.map(calc => ({
-            x: calc.custoTotal,
-            y: calc.precoFinal,
-            label: calc.servico.nome
-        })) : [];
+        // Calcular indicadores de projeção
+        const investimentoTotal = this.state.equipamentos.reduce((sum, e) => sum + e.custoAquisicao, 0);
+        const investimentoMarketingTotal = investimentoMarketing * mesesProjecao;
+        const roiCrescimento = investimentoMarketingTotal > 0 ? (resultadoAcumulado / investimentoMarketingTotal) * 100 : 0;
+        const capitalGiro = Math.max(...this.projecaoData.map(p => Math.abs(Math.min(0, p.resultadoAcumulado))));
 
-        const produtosData = this.calculosProdutos.length > 0 ? this.calculosProdutos.map(calc => ({
-            x: calc.custoTotal,
-            y: calc.precoFinal,
-            label: calc.produto.nome
-        })) : [];
+        // Atualizar indicadores
+        this.updateElementText('roiCrescimento', roiCrescimento.toFixed(1) + '%');
+        this.updateElementText('breakEvenPoint', breakEvenFound ? breakEvenMes : mesesProjecao);
+        this.updateElementText('capitalGiro', this.formatCurrency(capitalGiro));
+        this.updateElementText('receitaAcumulada', this.formatCurrency(receitaAcumulada));
 
-        this.charts.analise = new Chart(ctx, {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                    label: 'Serviços',
-                    data: servicosData,
-                    backgroundColor: '#1FB8CD',
-                    borderColor: '#1FB8CD'
-                }, {
-                    label: 'Produtos',
-                    data: produtosData,
-                    backgroundColor: '#FFC185',
-                    borderColor: '#FFC185'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: function(context) {
-                                return context[0]?.raw?.label || 'Item';
-                            },
-                            label: function(context) {
-                                return `Custo: R$ ${context.parsed.x.toLocaleString('pt-BR')}, Preço: R$ ${context.parsed.y.toLocaleString('pt-BR')}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Custo Total (R$)'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Preço Final (R$)'
-                        }
-                    }
-                }
-            }
-        });
+        this.renderProjecaoTabela();
+        this.renderProjecaoChart();
+    }
+
+    renderProjecaoTabela() {
+        const tbody = document.getElementById('projecaoTableBody');
+        if (!tbody || !this.projecaoData.length) return;
+
+        const inicio = this.paginaProjecaoAtual * this.mesesPorPagina;
+        const fim = Math.min(inicio + this.mesesPorPagina, this.projecaoData.length);
+        const dadosPagina = this.projecaoData.slice(inicio, fim);
+
+        tbody.innerHTML = dadosPagina.map(proj => `
+            <tr>
+                <td>Mês ${proj.mes}</td>
+                <td>${this.formatCurrency(proj.receita)}</td>
+                <td>${this.formatCurrency(proj.custoVariavel)}</td>
+                <td>${this.formatCurrency(proj.custoFixo)}</td>
+                <td>${this.formatCurrency(proj.marketing)}</td>
+                <td class="${proj.resultado >= 0 ? 'positive-value' : 'negative-value'}">
+                    ${this.formatCurrency(proj.resultado)}
+                </td>
+                <td class="${proj.resultadoAcumulado >= 0 ? 'positive-value' : 'negative-value'}">
+                    ${this.formatCurrency(proj.resultadoAcumulado)}
+                </td>
+            </tr>
+        `).join('');
+
+        // Atualizar paginação
+        const totalPaginas = Math.ceil(this.projecaoData.length / this.mesesPorPagina);
+        this.updateElementText('paginaAtual', `Página ${this.paginaProjecaoAtual + 1} de ${totalPaginas}`);
+    }
+
+    navegarProjecao(direcao) {
+        const totalPaginas = Math.ceil(this.projecaoData.length / this.mesesPorPagina);
+        
+        if (direcao === -1 && this.paginaProjecaoAtual > 0) {
+            this.paginaProjecaoAtual--;
+        } else if (direcao === 1 && this.paginaProjecaoAtual < totalPaginas - 1) {
+            this.paginaProjecaoAtual++;
+        }
+        
+        this.renderProjecaoTabela();
     }
 
     renderProjecaoChart() {
         const canvas = document.getElementById('projecaoChart');
-        if (!canvas) return;
+        if (!canvas || !this.projecaoData.length) return;
         
         const ctx = canvas.getContext('2d');
         
@@ -1398,53 +1366,42 @@ class FinancialAnalysisApp {
             this.charts.projecao.destroy();
         }
 
-        // CORREÇÃO: Verificar se há dados
-        const receitaAtual = (this.calculosServicos.length > 0 ? this.calculosServicos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0) + 
-                           (this.calculosProdutos.length > 0 ? this.calculosProdutos.reduce((sum, calc) => sum + calc.precoFinal, 0) : 0);
-        
-        const meses = [];
-        const receitaProjecao = [];
-        const crescimentoReceita = this.state.projecaoCrescimento.crescimentoReceita / 100;
-
-        for (let i = 0; i <= 12; i++) {
-            meses.push(`Mês ${i}`);
-            const receitaMes = receitaAtual * Math.pow(1 + crescimentoReceita, i);
-            receitaProjecao.push(receitaMes);
-        }
+        // Mostrar apenas os primeiros 24 meses no gráfico
+        const dadosChart = this.projecaoData.slice(0, 24);
 
         this.charts.projecao = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: meses,
+                labels: dadosChart.map(p => `Mês ${p.mes}`),
                 datasets: [{
-                    label: 'Receita Projetada',
-                    data: receitaProjecao,
+                    label: 'Receita',
+                    data: dadosChart.map(p => p.receita),
                     borderColor: '#1FB8CD',
-                    backgroundColor: 'rgba(31, 184, 205, 0.1)',
-                    fill: true
+                    backgroundColor: 'transparent',
+                    tension: 0.4
                 }, {
-                    label: 'Meta 12 Meses',
-                    data: new Array(13).fill(this.state.projecaoCrescimento.meta12Meses),
-                    borderColor: '#DB4545',
-                    borderDash: [5, 5],
-                    fill: false
+                    label: 'Resultado',
+                    data: dadosChart.map(p => p.resultado),
+                    borderColor: '#5D878F',
+                    backgroundColor: 'transparent',
+                    tension: 0.4
+                }, {
+                    label: 'Resultado Acumulado',
+                    data: dadosChart.map(p => p.resultadoAcumulado),
+                    borderColor: '#B4413C',
+                    backgroundColor: 'transparent',
+                    tension: 0.4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: true
-                    }
+                    legend: { display: true }
                 },
                 scales: {
                     y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Receita (R$)'
-                        },
+                        beginAtZero: false,
                         ticks: {
                             callback: function(value) {
                                 return 'R$ ' + value.toLocaleString('pt-BR');
@@ -1456,7 +1413,6 @@ class FinancialAnalysisApp {
         });
     }
 
-    // === UTILITY METHODS ===
     updateElementText(elementId, text) {
         const element = document.getElementById(elementId);
         if (element) {
@@ -1468,27 +1424,108 @@ class FinancialAnalysisApp {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
-        }).format(value || 0);
+        }).format(value);
     }
 }
 
-// === GLOBAL FUNCTIONS ===
-window.adicionarServico = function() { if (window.app) window.app.adicionarServico(); };
-window.adicionarProduto = function() { if (window.app) window.app.adicionarProduto(); };
-window.adicionarMaterial = function() { if (window.app) window.app.adicionarMaterial(); };
-window.adicionarEquipamento = function() { if (window.app) window.app.adicionarEquipamento(); };
-window.adicionarFuncionario = function() { if (window.app) window.app.adicionarFuncionario(); };
-window.adicionarDespesaFixa = function() { if (window.app) window.app.adicionarDespesaFixa(); };
+// Funções globais
+function salvarDados() {
+    try {
+        const dataToExport = {
+            ...window.app.state,
+            timestamp: new Date().toISOString(),
+            version: '2.0'
+        };
+        
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `analise-viabilidade-${new Date().toISOString().split('T')[0]}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        
+        alert('Dados exportados com sucesso!');
+    } catch (error) {
+        alert('Erro ao exportar dados: ' + error.message);
+    }
+}
 
-window.toggleAccordion = function(sectionName) { if (window.app) window.app.toggleAccordion(sectionName); };
-
-// Inicializar aplicação - AGUARDAR DOM ESTAR COMPLETAMENTE CARREGADO
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== DOM CARREGADO ===');
+function carregarBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
     
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            
+            if (!importedData.servicos || !importedData.produtos) {
+                throw new Error('Arquivo de backup inválido');
+            }
+            
+            Object.keys(window.app.state).forEach(key => {
+                if (importedData[key]) {
+                    window.app.state[key] = importedData[key];
+                }
+            });
+            
+            window.app.renderAll();
+            window.app.calculate();
+            window.app.saveToStorage();
+            
+            alert('Backup carregado com sucesso!');
+        } catch (error) {
+            alert('Erro ao carregar backup: ' + error.message);
+        }
+    };
+    reader.readAsText(file);
+}
+
+function limparDados() {
+    if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
+        localStorage.removeItem('financial_analysis_data');
+        location.reload();
+    }
+}
+
+function imprimirRelatorio() {
+    window.app.switchToSection('relatorios');
     setTimeout(() => {
-        console.log('=== INICIALIZANDO APLICAÇÃO ===');
-        window.app = new FinancialAnalysisApp();
-        window.app.init();
-    }, 100);
+        window.print();
+    }, 500);
+}
+
+function calcularProjecao() {
+    window.app.calcularProjecao();
+}
+
+function navegarProjecao(direcao) {
+    window.app.navegarProjecao(direcao);
+}
+
+// Funções CRUD globais
+window.adicionarServico = function() { window.app.adicionarServico(); };
+window.adicionarProduto = function() { window.app.adicionarProduto(); };
+window.adicionarMaterial = function() { window.app.adicionarMaterial(); };
+window.adicionarEquipamento = function() { window.app.adicionarEquipamento(); };
+window.adicionarFuncionario = function() { window.app.adicionarFuncionario(); };
+window.adicionarSocio = function() { window.app.adicionarSocio(); };
+window.adicionarDespesaFixa = function() { window.app.adicionarDespesaFixa(); };
+window.adicionarDespesaVariavel = function() { window.app.adicionarDespesaVariavel(); };
+
+window.salvarDados = salvarDados;
+window.carregarBackup = carregarBackup;
+window.limparDados = limparDados;
+window.imprimirRelatorio = imprimirRelatorio;
+window.calcularProjecao = calcularProjecao;
+window.navegarProjecao = navegarProjecao;
+
+// Inicializar aplicação
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM carregado, inicializando aplicação...');
+    window.app = new FinancialAnalysisApp();
+    window.app.init();
 });
